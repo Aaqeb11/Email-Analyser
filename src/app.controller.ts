@@ -13,6 +13,7 @@ import { EmailService } from './dataUpload.service';
 
 @Controller()
 export class AppController {
+  logger: any;
   constructor(
     private readonly appService: AppService,
     private readonly emailservice: EmailService,
@@ -23,17 +24,33 @@ export class AppController {
     return this.appService.getHello();
   }
   @Post('upload')
-  async uploadEmails(@Body() emailDataStructure: EmailDataStructure) {
+  async uploadEmails(@Body() emailData: any) {
     try {
-      await this.emailservice.processAllEmails(emailDataStructure);
-      return { message: 'Emails processed successfully' };
+      // Validate the data structure
+      if (!emailData || typeof emailData !== 'object') {
+        throw new HttpException(
+          'Invalid data format',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Process the emails
+      await this.emailservice.uploadAllEmails(emailData);
+      
+      return { 
+        status: 'success',
+        message: 'Emails processed successfully' 
+      };
     } catch (error) {
-      throw new HttpException(
-        'Failed to process emails',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Upload error:', error);
+      throw new HttpException({
+        status: 'error',
+        message: 'Failed to process emails',
+        error: error.message
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
   @Post('similarity')
   async getSimilar(@Query('query') query: string) {
     try {

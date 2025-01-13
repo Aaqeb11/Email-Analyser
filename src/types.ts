@@ -38,3 +38,25 @@ export class CreateEmailDto {
 export type EmailWithEmbedding = Prisma.EmailCreateInput & {
   embedding?: number[];
 };
+
+export interface SimilarEmail {
+  id: string;
+  subject: string;
+  body: string;
+  sentDateTime: Date;
+  receivedDateTime: Date;
+  hasAttachments: boolean;
+  sender: string;
+  receiver: string;
+  embedding: string;
+  similarity: number;
+  entities: string[];
+  entity_confidence: number;
+}
+
+// Add other existing types...
+
+
+// export type EmailCreateInputWithVector = Prisma.EmailCreateInput & {
+//   embedding?: vector;
+// };

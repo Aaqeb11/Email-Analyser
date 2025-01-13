@@ -1,0 +1,63 @@
+{
+  "dharding@talentquest.com": [
+    {
+      "subject": "David Harding - Leads",
+      "sender": {
+        "name": "David Harding",
+        "email": "dharding@talentquest.com"
+      },
+      "receiver": {
+        "name": "Thomas Foster",
+        "email": "tfoster@talentquest.com"
+      },
+      "body": "",
+      "sent_datetime": "2024-12-04T21:46:44Z",
+      "received_datetime": "2024-12-04T21:46:00Z",
+      "has_attachments": true,
+      "attachments": [
+        {
+          "name": "David Harding - Leads.xlsx",
+          "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+      ]
+    },
+    {
+      "subject": "Interview Candidates",
+      "sender": {
+        "name": "David Harding",
+        "email": "dharding@talentquest.com"
+      },
+      "receiver": {
+        "name": "craigpetersen@metalcore.com",
+        "email": "craigpetersen@metalcore.com"
+      },
+      "body": "Hello Craig, I came across job opportunities at your organization and, after reviewing the job descriptions, I've identified potential candidates open to both Direct Hire and Contract options. Would you be interested in receiving a selection of sample resumes for your review? If you find candidates that align with your requirements, we can explore the next steps. Our talent pool is extensive, and we are continually on the lookout for skilled individuals who would be a great fit for our clients. I look forward to hearing from you! Best regards, David Harding TalentQuest Inc I 224-442-2214 Naperville, IL 60563",
+      "sent_datetime": "2023-11-14T15:04:07Z",
+      "received_datetime": "2023-11-14T14:54:00Z",
+      "has_attachments": false
+    }
+  ],
+  "ebaker@talentquest.com": [
+    {
+      "subject": "Quality Engineer",
+      "sender": {
+        "name": "Barbara Wilson",
+        "email": "barbarawilson@metalcore.com"
+      },
+      "receiver": {
+        "name": "Eric Baker",
+        "email": "ebaker@talentquest.com"
+      },
+      "body": "Good Afternoon! Do you guys place Quality Engineers? If so, we are looking to fill this position with our company. The pay range will be around $60K-70K depending on experience. If you can find anyone with a background working with International (Navistar) or Cummins, that would be great! If not, no worries, it would just be an easier fit. I have attached a job description for your consideration. Thank you! Barbara Wilson Human Resources MetalCore Manufacturing Corp 1234 Industrial Ave. Fort Wayne, IN 46804 e-mail: barbarawilson@metalcore.com desk: (260) 919-0311 cell: (260) 402-6632",
+      "sent_datetime": "2024-10-14T19:03:27Z",
+      "received_datetime": "2024-10-14T19:03:42Z",
+      "has_attachments": true,
+      "attachments": [
+        {
+          "name": "Quality Engineer Position Description.doc",
+          "content_type": "application/msword"
+        }
+      ]
+    }
+  ]
+}

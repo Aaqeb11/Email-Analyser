@@ -1,0 +1,40 @@
+// src/email/dto/email.dto.ts
+import { Prisma } from '@prisma/client';
+
+export interface EmailAttachment {
+  name: string;
+  content_type: string;
+}
+
+export interface EmailParticipant {
+  name: string;
+  email: string;
+}
+
+export interface RawEmailData {
+  subject: string;
+  sender: EmailParticipant;
+  receiver: EmailParticipant;
+  body: string;
+  sent_datetime: string;
+  received_datetime: string;
+  has_attachments: boolean;
+  attachments?: EmailAttachment[];
+}
+
+export interface EmailDataStructure {
+  [email: string]: RawEmailData[];
+}
+
+export class CreateEmailDto {
+  subject: string;
+  body: string;
+  sentDateTime: Date;
+  receivedDateTime: Date;
+  hasAttachments: boolean;
+  sender: Prisma.JsonValue;
+  receiver: Prisma.JsonValue;
+}
+export type EmailWithEmbedding = Prisma.EmailCreateInput & {
+  embedding?: number[];
+};

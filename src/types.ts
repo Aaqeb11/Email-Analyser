@@ -10,6 +10,21 @@ export interface EmailParticipant {
   name: string;
   email: string;
 }
+export interface ClassificationInstance {
+  name: string;
+  confidence: number;
+  metadata: Record<string, any>;
+  similarityScore?: number;
+}
+
+export interface Classification {
+  category: string;
+  instances: ClassificationInstance[];
+}
+
+export interface ClassificationResponse {
+  classifications: Classification[];
+}
 
 export interface RawEmailData {
   subject: string;

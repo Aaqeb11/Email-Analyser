@@ -8,8 +8,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { EmailDataStructure, RawEmailData } from './types';
+import { EmailDataStructure, RawEmailData, UploadPathDto } from './types';
 import { EmailService } from './dataUpload.service';
+import { EmailClassificationService } from './emailClassification.service';
 
 @Controller()
 export class AppController {
@@ -17,47 +18,83 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly emailservice: EmailService,
+    private readonly classificationService:EmailClassificationService
   ) {}
-
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
+
   @Post('upload')
-  async uploadEmails(@Body() emailData: any) {
+  async uploadEmails(@Body() uploadDto: UploadPathDto) {
     try {
-      // Validate the data structure
-      if (!emailData || typeof emailData !== 'object') {
+      if (!uploadDto.filePath) {
         throw new HttpException(
-          'Invalid data format',
+          'File path is required',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      // Process the emails
-      await this.emailservice.uploadAllEmails(emailData);
+      const result = await this.emailservice.uploadEmailsFromFile(uploadDto.filePath);
       
       return { 
         status: 'success',
-        message: 'Emails processed successfully' 
+        message: 'Emails uploaded successfully with embeddings',
+        count: result.length
       };
     } catch (error) {
       console.error('Upload error:', error);
       throw new HttpException({
         status: 'error',
-        message: 'Failed to process emails',
+        message: 'Failed to upload emails',
+        error: error.message
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
+  @Post('classify')
+  async classifyEmails( ) {
+    try {
+      // if (!params.emailIds || !Array.isArray(params.emailIds)) {
+      //   throw new HttpException('Invalid email IDs', HttpStatus.BAD_REQUEST);
+      // }
+
+      const results = await this.classificationService.classifyEmails();
+      return {
+        status: 'success',
+        data: results
+      };
+    } catch (error) {
+      console.error('Classification error:', error);
+      throw new HttpException({
+        status: 'error',
+        message: 'Failed to classify emails',
         error: error.message
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Post('similarity')
-  async getSimilar(@Query('query') query: string) {
+  async findSimilarEmails(@Body() params: { emailId: string, limit?: number }) {
     try {
-      const result = await this.emailservice.findSimilarEmails(query, 5);
-      return result;
+      if (!params.emailId) {
+        throw new HttpException('Email ID required', HttpStatus.BAD_REQUEST);
+      }
+
+      const similarEmails = await this.emailservice.findSimilarEmails(params.emailId as any, params.limit);
+      return {
+        status: 'success',
+        data: similarEmails
+      };
     } catch (error) {
-      ('Failed to similar');
+      console.error('Similarity search error:', error);
+      throw new HttpException({
+        status: 'error',
+        message: 'Failed to find similar emails',
+        error: error.message
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
+

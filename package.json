@@ -22,6 +22,7 @@
   "dependencies": {
     "@faker-js/faker": "^9.3.0",
     "@langchain/core": "^0.3.29",
+    "@langchain/langgraph": "^0.2.40",
     "@langchain/openai": "^0.3.17",
     "@nestjs/common": "^10.4.15",
     "@nestjs/config": "^3.3.0",
@@ -29,6 +30,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.2.1",
     "langchain": "^0.3.11",
+    "langsmith": "^0.2.15",
     "openai": "^4.78.1",
     "pgvector": "^0.2.0",
     "prisma": "^6.2.1",

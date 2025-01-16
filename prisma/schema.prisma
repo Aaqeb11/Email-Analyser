@@ -10,12 +10,12 @@ generator client {
 }
 
 model Entity {
-  id            String         @id @default(uuid())
-  name          String         @unique
+  id            String           @id @default(uuid())
+  name          String           @unique
   emailEntities EmailEntity[]
   instances     EntityInstance[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model EntityInstance {
@@ -32,31 +32,64 @@ model EntityInstance {
 }
 
 model EmailEntity {
-  id                String          @id @default(uuid())
-  emailId           String
-  entityId          String
-  entityInstanceId  String
-  confidence       Float
-  email            Email           @relation(fields: [emailId], references: [id])
-  entity           Entity          @relation(fields: [entityId], references: [id])
-  entityInstance   EntityInstance  @relation(fields: [entityInstanceId], references: [id])
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id               String         @id @default(uuid())
+  emailId          String
+  entityId         String
+  entityInstanceId String
+  confidence      Float
+  email           Email          @relation(fields: [emailId], references: [id])
+  entity          Entity         @relation(fields: [entityId], references: [id])
+  entityInstance  EntityInstance @relation(fields: [entityInstanceId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@unique([emailId, entityId, entityInstanceId])
 }
 
 model Email {
   id               String       @id @default(uuid())
+  msMessageId      String?      @unique  // Optional, for linking with external systems
   subject          String
   body             String       @db.Text
   sentDateTime     DateTime
   receivedDateTime DateTime
   hasAttachments   Boolean      @default(false)
-  sender           Json?
-  receiver         Json?
-  embedding        Unsupported("vector(1536)")?
+  sender           Json
+  receiver         Json
+  subjectEmbedding Unsupported("vector(1536)")?
+  bodyEmbedding    Unsupported("vector(1536)")?
+  senderEmbedding  Unsupported("vector(1536)")?
+  receiverEmbedding Unsupported("vector(1536)")?
   emailEntities    EmailEntity[]
+  thread           Thread?      @relation(fields: [threadId], references: [id])
+  threadId         String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+
+  @@index([sentDateTime])
+  @@index([receivedDateTime])
+  @@index([threadId])
+}
+
+model Thread {
+  id           String              @id @default(uuid())
+  subject      String?
+  participants ThreadParticipant[]
+  emails       Email[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([createdAt])
+}
+
+model ThreadParticipant {
+  id            String    @id @default(uuid())
+  name          String    
+  email         String    @unique
+  isInternalUser Boolean  @default(false)
+  threads       Thread[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
 }

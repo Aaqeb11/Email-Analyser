@@ -10,7 +10,8 @@ import {
 import { AppService } from './app.service';
 import { EmailDataStructure, RawEmailData, UploadPathDto } from './types';
 import { EmailService } from './dataUpload.service';
-import { EmailClassificationService } from './emailClassification.service';
+// import { EmailClassificationService } from './emailClassification.service';
+import { fetchEmail } from './tools';
 
 @Controller()
 export class AppController {
@@ -18,7 +19,7 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly emailservice: EmailService,
-    private readonly classificationService:EmailClassificationService
+    // private readonly classificationService:EmailClassificationService
   ) {}
   @Get()
   getHello(): string {
@@ -53,27 +54,27 @@ export class AppController {
   }
 
 
-  @Post('classify')
-  async classifyEmails( ) {
-    try {
-      // if (!params.emailIds || !Array.isArray(params.emailIds)) {
-      //   throw new HttpException('Invalid email IDs', HttpStatus.BAD_REQUEST);
-      // }
+  // @Post('classify')
+  // async classifyEmails( ) {
+  //   try {
+  //     // if (!params.emailIds || !Array.isArray(params.emailIds)) {
+  //     //   throw new HttpException('Invalid email IDs', HttpStatus.BAD_REQUEST);
+  //     // }
 
-      const results = await this.classificationService.classifyEmails();
-      return {
-        status: 'success',
-        data: results
-      };
-    } catch (error) {
-      console.error('Classification error:', error);
-      throw new HttpException({
-        status: 'error',
-        message: 'Failed to classify emails',
-        error: error.message
-      }, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
+  //     const results = await this.classificationService.classifyEmails();
+  //     return {
+  //       status: 'success',
+  //       data: results
+  //     };
+  //   } catch (error) {
+  //     console.error('Classification error:', error);
+  //     throw new HttpException({
+  //       status: 'error',
+  //       message: 'Failed to classify emails',
+  //       error: error.message
+  //     }, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
 
   @Post('similarity')
   async findSimilarEmails(@Body() params: { emailId: string, limit?: number }) {
@@ -96,5 +97,18 @@ export class AppController {
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  @Get('emails')
+  async fetchEmail(){
+    try{
+      const emails=await fetchEmail()
+      return{
+        status:'success',
+        data:emails
+      }
+    }catch(error){
+  
+    }
+  }
 }
+
 

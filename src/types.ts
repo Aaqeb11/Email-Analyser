@@ -1,5 +1,6 @@
 // src/email/dto/email.dto.ts
 import { Prisma } from '@prisma/client';
+import { z } from 'zod';
 
 export interface EmailAttachment {
   name: string;
@@ -9,6 +10,21 @@ export interface EmailAttachment {
 export interface EmailParticipant {
   name: string;
   email: string;
+}
+export interface ClassificationInstance {
+  name: string;
+  confidence: number;
+  metadata: Record<string, any>;
+  similarityScore?: number;
+}
+
+export interface Classification {
+  category: string;
+  instances: ClassificationInstance[];
+}
+
+export interface ClassificationResponse {
+  classifications: Classification[];
 }
 
 export interface RawEmailData {
@@ -53,6 +69,11 @@ export interface SimilarEmail {
   entities: string[];
   entity_confidence: number;
 }
+export interface UploadPathDto {
+  filePath: string;
+}
+
+
 
 // Add other existing types...
 

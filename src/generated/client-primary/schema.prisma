@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions", "prismaSchemaFolder", "fullTextSearchPostgres", "metrics"]
-  output          = "./generated/client-primary"
+  output          = "../src/generated/client-primary"
 }
 
 generator dbml {
@@ -11,7 +11,7 @@ generator dbml {
 datasource db {
   provider   = "postgresql"
   url        = env("PRIMARY_DATABASE_URL")
-  extensions = [uuidOssp(map: "uuid-ossp"),vector(schema: "public")]
+  extensions = [uuidOssp(map: "uuid-ossp"), vector(schema: "public")]
 }
 
 // ==================== Tenant Configuration ====================
@@ -856,29 +856,30 @@ model Source {
 }
 
 model Message {
-  id                 String        @id @default(uuid()) @db.Uuid
-  ms_message_id      String        @unique @db.Uuid
-  subject            String?       @db.Text
-  sender_name        String?
-  sender_email       String
-  received_date_time DateTime?
-  sent_date_time     DateTime?
-  body               String        @db.Text
-  body_preview       String?       @db.Text
-  recipients         Json?
-  cc_recipients      Json?
-  bcc_recipients     Json?
-  reply_to           Json?
-  has_attachments    Boolean       @default(false)
-  summary            Json?
-  meta_data          Json
-  source_id          String        @db.Uuid
-  source             Source        @relation(fields: [source_id], references: [id])
-  folder             FolderMessage @relation(fields: [folder_key, user_id], references: [folder_key, user_id])
-  user_id            String        @db.Uuid
-  folder_key         String
-  created_at         DateTime      @default(now()) @map("created_at")
-  last_updated_at    DateTime      @updatedAt @map("last_updated_at")
+  id                  String                @id @default(uuid()) @db.Uuid
+  ms_message_id       String                @unique @db.Uuid
+  subject             String?               @db.Text
+  sender_name         String?
+  sender_email        String
+  received_date_time  DateTime?
+  sent_date_time      DateTime?
+  body                String                @db.Text
+  body_preview        String?               @db.Text
+  recipients          Json?
+  cc_recipients       Json?
+  bcc_recipients      Json?
+  reply_to            Json?
+  has_attachments     Boolean               @default(false)
+  summary             Json?
+  meta_data           Json
+  source_id           String                @db.Uuid
+  source              Source                @relation(fields: [source_id], references: [id])
+  folder              FolderMessage         @relation(fields: [folder_key, user_id], references: [folder_key, user_id])
+  user_id             String                @db.Uuid
+  folder_key          String
+  created_at          DateTime              @default(now()) @map("created_at")
+  last_updated_at     DateTime              @updatedAt @map("last_updated_at")
+  EmailCategorization EmailCategorization[]
 
   @@index([ms_message_id])
   @@index([folder_key, user_id, received_date_time(sort: Desc)])
@@ -886,7 +887,6 @@ model Message {
   @@index([sender_email])
   @@index([source_id])
   @@map("messages")
-  EmailCategorization EmailCategorization[]
 }
 
 model Attachment {
@@ -2538,6 +2538,7 @@ model Reminder {
   @@index([remind_at, is_sent]) // Helps find unsent reminders
   @@map("reminders")
 }
+
 enum Department {
   RESEARCH
   RECRUITMENT
@@ -2545,11 +2546,11 @@ enum Department {
 }
 
 model EmailCategorization {
-  id                 String     @id @default(uuid()) @db.Uuid
-  department         Department
-  message           Message    @relation(fields: [message_id], references: [id])
-  message_id         String     @db.Uuid @unique
-  
+  id         String     @id @default(uuid()) @db.Uuid
+  department Department
+  message    Message    @relation(fields: [message_id], references: [id])
+  message_id String     @unique @db.Uuid
+
   // Vector embeddings
   sender_embedding   Unsupported("vector(1536)")?
   receiver_embedding Unsupported("vector(1536)")?
@@ -2558,6 +2559,5 @@ model EmailCategorization {
 
   @@index([department])
   @@index([message_id])
-  
   @@map("email_categorizations")
 }

@@ -83,11 +83,11 @@ export class AppController {
         throw new HttpException('Email ID required', HttpStatus.BAD_REQUEST);
       }
 
-      const similarEmails = await this.emailservice.findSimilarEmails(params.emailId as any, params.limit);
-      return {
-        status: 'success',
-        data: similarEmails
-      };
+      // const similarEmails = await this.emailservice.findSimilarEmails(params.emailId as any, params.limit);
+      // return {
+      //   status: 'success',
+      //   data: similarEmails
+      // };
     } catch (error) {
       console.error('Similarity search error:', error);
       throw new HttpException({

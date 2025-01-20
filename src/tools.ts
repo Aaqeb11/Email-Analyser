@@ -277,19 +277,17 @@ export const ALL_TOOLS = [
     pocValidationTool,
     // storeClassificationTool,
     // fetchSimilarEmailsTool
-  ];
+];
 
-  export const fetchEmail=async()=>{
+export const fetchEmail=async()=>{
     return await prisma.email.findMany({
         take:10
     })
 }
 
-export const prompt=`You are an email analyzer for ProficientNow, a specialized staffing company focused on technical recruitment. Your task is to analyze emails and classify them according to ProficientNow's business workflow and sales pipeline stages.
+export const prompt=`You are an email analyzer for ProficientNow, a specialized staffing company focused on technical recruitment. Your task is to analyze emails and classify them according to ProficientNow's business workflow and sales pipeline stages. 
 
-Analyze each email considering these key aspects:
-
-1. Pipeline Stage Classification:
+Pipeline Stage Classification:
 - Prospect Stage: Initial research and information gathering
 - Lead Generation Stage: First contact and follow-up communications
 - Opportunity Stage: Transfer to BDM and requirement gathering
@@ -297,7 +295,7 @@ Analyze each email considering these key aspects:
 - Deal Stage: Contract negotiations and terms
 - Sale Stage: Successful placement and payment processing
 
-2. Communication Type:
+Communication Type:
 - Cold Outreach: Initial contact with potential clients
 - Client Response: Client replies and ongoing discussions
 - Candidate Submission: Presenting candidates to clients
@@ -305,15 +303,31 @@ Analyze each email considering these key aspects:
 - Contract/Terms Discussion: Negotiation and agreement
 - Internal Transfer: Communication between ProficientNow teams
 
-3. Key Entity Extraction:
+Action Items:
+- Required Follow-ups
+- Pending Responses
+- Scheduled Interviews
+- Document Requirements
+- Contract Status
+- Payment Terms
+
+Business Intelligence:
+- Client Pain Points
+- Competitive Information
+- Market Rate Insights
+- Hiring Trends
+- Process Bottlenecks
+
+Analyze each email considering these key aspects:
+
+Key Entity Extraction:
 
 For Companies:
-- Company Name
+- Company Name (except for ProficientNow)
 - Industry/Sector
 - Location
-- Size (if mentioned)
 - Current Requirements
-- Point of Contact
+- Contacts
 
 For Positions:
 - Job Title
@@ -325,7 +339,7 @@ For Positions:
 - Additional Benefits
 - Position Type (Contract/Full-time)
 
-For Contacts:
+For Contacts(client contacts only):
 - Name
 - Role/Title
 - Department
@@ -343,20 +357,6 @@ For Candidates:
 - Interview Performance
 - Client Feedback
 
-4. Action Items:
-- Required Follow-ups
-- Pending Responses
-- Scheduled Interviews
-- Document Requirements
-- Contract Status
-- Payment Terms
-
-5. Business Intelligence:
-- Client Pain Points
-- Competitive Information
-- Market Rate Insights
-- Hiring Trends
-- Process Bottlenecks
 
 {similarEmailsContext}
 
@@ -364,18 +364,19 @@ Classify the email into these categories and identify specific instances:
 {categories}
 `
 
-export const VALIDATOR_PROMPT = `You are a high-precision email content validator for ProficientNow, a technical staffing company. Your role is to validate and refine the AI's initial classifications of email content. You will receive a JSON object with various classifications and must verify each one with high precision.
+export const VALIDATOR_PROMPT = `You are a high-precision email content validator for ProficientNow, a technical staffing company. Your role is to validate and refine the AI's initial classifications of email content. You will receive a JSON object with various classifications and must verify each one with high precision. If the email is a repeating one, then no need to validate,use the earlier validation if any.
 
 REQUIREMENT: Each classification must meet these validation criteria:
 
 1. Entity Validation Rules:
 
 Clients:
-- Must be actual company names (not departments/divisions)
+- Must be actual company names (not departments/divisions and not ProficientNow itself.)
 - Must have confirmable location/industry in the email
 - Confidence must be downgraded if information is incomplete
 
 Contacts:
+- These point to external entities not belonging to ProficientNow.
 - Must be full names of individuals
 - Must have clear role/company affiliation
 - Must appear in email sender/receiver or be directly mentioned
@@ -391,13 +392,10 @@ Positions:
 - Must be active openings mentioned in the email
 
 Locations:
-- Must include city/state when available
-- Must be business locations (not personal)
-- Must be relevant to the recruitment process
+- Must be the location(s) of the position(s) in the conversation.
 
 Point of Contacts:
-- Must be decision-makers or direct contacts
-- Must have clear organizational role
+- These contacts are the point of contacts from ProficientNow to clients/candidates and are the employees of ProficientNow only.
 - Must be actively involved in the communication
 
 2. Confidence Scoring Rules:

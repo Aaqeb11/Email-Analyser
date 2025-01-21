@@ -7,6 +7,7 @@ import { PrismaClient as ReadOnlyPrismaClient } from '../prisma/generated/client
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly primaryClient: PrimaryPrismaClient;
   private readonly readOnlyClient: ReadOnlyPrismaClient;
+    $executeRaw: any;
 
   constructor() {
     this.primaryClient = new PrimaryPrismaClient();

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { EmailService } from './dataUpload.service';
+// import { EmailService } from './dataUpload.service';
 import { PrismaService } from 'src/prisma.service';
 import { ConfigModule } from '@nestjs/config';// import { EmailClassificationService } from './emailClassification.service';
 import { CategorizationModule } from './email-categorization/categorization.module';
@@ -12,6 +12,6 @@ import { CategorizationModule } from './email-categorization/categorization.modu
     isGlobal: true,
   }),CategorizationModule] ,
   controllers: [AppController],
-  providers: [AppService, EmailService, PrismaService],
+  providers: [AppService,  PrismaService],
 })
 export class AppModule {}

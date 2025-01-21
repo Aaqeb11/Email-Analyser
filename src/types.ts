@@ -1,5 +1,6 @@
 // src/email/dto/email.dto.ts
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated/client-primary';
 import { z } from 'zod';
 
 export interface EmailAttachment {
@@ -51,9 +52,9 @@ export class CreateEmailDto {
   sender: Prisma.JsonValue;
   receiver: Prisma.JsonValue;
 }
-export type EmailWithEmbedding = Prisma.EmailCreateInput & {
-  embedding?: number[];
-};
+// export type EmailWithEmbedding = Prisma.EmailCreateInput & {
+//   embedding?: number[];
+// };
 
 export interface SimilarEmail {
   id: string;

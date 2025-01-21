@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-     "build": "nest build && cp -r prisma/generated dist/prisma/generated",
+    "build": "nest build && cp -r prisma/generated dist/prisma/generated",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -29,6 +29,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.2.1",
+    "cheerio": "^1.0.0",
     "langchain": "^0.3.11",
     "langsmith": "^0.2.15",
     "openai": "^4.78.1",

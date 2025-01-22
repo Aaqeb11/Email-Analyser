@@ -19,6 +19,8 @@ interface IEmailParticipants {
     bcc_recipients?: string[] | null;
   }
 
+  const schema='019403ee-2961-7f8e-9682-c2c5dede384b'
+
   export interface IMessage {
     id: string;
     ms_message_id?: string;
@@ -149,17 +151,24 @@ export class CategorizationService {
             return null;
         }
     
-        // Handle single recipient object
-        if (typeof jsonField === 'object' && !Array.isArray(jsonField) && jsonField.email) {
-            return [jsonField.email];
+        // Handle single recipient object with nested emailAddress structure
+        if (typeof jsonField === 'object' && !Array.isArray(jsonField) && jsonField.emailAddress?.address) {
+            return [jsonField.emailAddress.address];
         }
     
-        // Handle array of recipients
+        // Handle array of recipients with nested emailAddress structure
         if (Array.isArray(jsonField)) {
             return jsonField
                 .map(item => {
-                    if (typeof item === 'object' && item !== null && 'email' in item) {
-                        return (item as { email: string }).email;
+                    if (typeof item === 'object' && item !== null) {
+                        // Handle nested emailAddress structure
+                        if (item.emailAddress?.address) {
+                            return item.emailAddress.address;
+                        }
+                        // Fallback for direct email property
+                        if (item.email) {
+                            return item.email;
+                        }
                     }
                     if (typeof item === 'string') {
                         return item;
@@ -325,40 +334,42 @@ export class CategorizationService {
 
     private async generateAndStoreEmbeddings(message: IMessage): Promise<void> {
         try {
-            // Convert HTML body to plain text
             const plainTextBody = this.htmlToText(message.body);
             
-            // Generate all embeddings in parallel
+            // Truncate text to approximate token limits
+            // A rough estimate is 4 chars per token, so we'll limit to ~7000 chars to stay safe
+            const maxLength = 7000;
+            const truncatedBody = plainTextBody.slice(0, maxLength);
+            const truncatedSubject = (message.subject || '').slice(0, maxLength);
+            const truncatedSenderInfo = JSON.stringify({
+                email: message.sender_email,
+                name: message.sender_name
+            }).slice(0, maxLength);
+            const truncatedRecipients = JSON.stringify(message.recipients || '').slice(0, maxLength);
+            
             const [subjectEmbedding, bodyEmbedding, senderEmbedding, receiverEmbedding] =
             await Promise.all([
-                this.openaiEmbeddings.embedQuery(message.subject || ''),
-                this.openaiEmbeddings.embedQuery(plainTextBody),
-                this.openaiEmbeddings.embedQuery(
-                    JSON.stringify({
-                        email: message.sender_email,
-                        name: message.sender_name
-                    })
-                ),
-                this.openaiEmbeddings.embedQuery(JSON.stringify(message.recipients || '')),
+                this.openaiEmbeddings.embedQuery(truncatedSubject),
+                this.openaiEmbeddings.embedQuery(truncatedBody),
+                this.openaiEmbeddings.embedQuery(truncatedSenderInfo),
+                this.openaiEmbeddings.embedQuery(truncatedRecipients),
             ]);
-
-            // Store embeddings in the database
+    
+            const schemaName = Prisma.raw(`"${schema}"`);
+            
             await this.prisma.primary.$executeRaw`
-                  UPDATE "messages" 
-                  SET 
-                      "subject_embedding"=${JSON.stringify(subjectEmbedding)}::extensions.vector,
-                      "body_embedding"=${JSON.stringify(bodyEmbedding)}::extensions.vector,
-                      "sender_embedding"=${JSON.stringify(senderEmbedding)}:extensions.vector,
-                      "receiver_embedding"=${JSON.stringify(receiverEmbedding)}:extensions.vector
-                     
-                  WHERE id = ${message.id}::uuid
-              `;
+                UPDATE ${schemaName}.messages 
+                SET 
+                    subject_embedding = ${JSON.stringify(subjectEmbedding)}::${schemaName}.vector,
+                    body_embedding = ${JSON.stringify(bodyEmbedding)}::${schemaName}.vector,
+                    sender_embedding = ${JSON.stringify(senderEmbedding)}::${schemaName}.vector,
+                    receiver_embedding = ${JSON.stringify(receiverEmbedding)}::${schemaName}.vector
+                WHERE id = ${message.id}::uuid
+            `;
         } catch (error) {
             this.logger.error(`Error generating or storing embeddings: ${error.message}`);
             throw error;
         }
     }
-    
-  
 
 }

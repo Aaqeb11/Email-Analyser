@@ -1,6 +1,6 @@
-generator pclient {
+generator client {
   provider        = "prisma-client-js"
-  output          = "./generated/client-primary"
+  output          = "../client"
   previewFeatures = ["fullTextSearchPostgres", "metrics", "postgresqlExtensions", "prismaSchemaFolder"]
 }
 
@@ -10,8 +10,8 @@ generator dbml {
 
 datasource db {
   provider   = "postgresql"
-  url        = env("PRIMARY_DATABASE_URL")
-  // directUrl  = env("DIRECT_URL")
+  url        = env("TENANT_DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
   extensions = [uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(map: "vector", schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
 }
 
@@ -382,9 +382,9 @@ model UserDeviceLocation {
   user_devices_user_device_locations_device_id_user_idTouser_devices              UserDevice  @relation("user_device_locations_device_id_user_idTouser_devices", fields: [device_id, user_id], references: [id, user_id])
   user_devices_user_devices_last_accessed_from_location_idTouser_device_locations UserDevice? @relation("user_devices_last_accessed_from_location_idTouser_device_locations")
 
+  @@unique([device_id, user_id])
   @@index([id, device_id])
   @@map("user_device_locations")
-  @@unique([device_id, user_id])
 }
 
 model AuditLog {
@@ -533,34 +533,34 @@ model Source {
 }
 
 model Message {
-  id                 String                 @id @default(uuid()) @db.Uuid
-  ms_message_id      String                 @unique
-  subject            String?
-  sender_name        String?
-  sender_email       String
-  received_date_time DateTime?
-  sent_date_time     DateTime?
-  body               String
-  body_preview       String?
-  recipients         Json?
-  cc_recipients      Json?
-  bcc_recipients     Json?
-  reply_to           Json?
-  has_attachments    Boolean                @default(false)
-  summary            Json?
-  meta_data          Json
-  source_id          String                 @db.Uuid
-  created_at         DateTime               @default(now()) @map("created_at")
-  last_updated_at    DateTime               @updatedAt @map("last_updated_at")
-  isArchived         Boolean
-  isRead             Boolean
-  isStarred          Boolean
-  subject_embedding  Unsupported("vector(1536)")?
-  body_embedding     Unsupported("vector(1536)")?
-  sender_embedding   Unsupported("vector(1536)")?
-  receiver_embedding Unsupported("vector(1536)")?
-  source             Source                 @relation(fields: [source_id], references: [id])
-  folders            FolderMessage[]        @relation("FolderMessageToMessage")
+  id                     String                       @id @default(uuid()) @db.Uuid
+  ms_message_id          String                       @unique
+  subject                String?
+  sender_name            String?
+  sender_email           String
+  received_date_time     DateTime?
+  sent_date_time         DateTime?
+  body                   String
+  body_preview           String?
+  recipients             Json?
+  cc_recipients          Json?
+  bcc_recipients         Json?
+  reply_to               Json?
+  has_attachments        Boolean                      @default(false)
+  summary                Json?
+  meta_data              Json
+  source_id              String                       @db.Uuid
+  created_at             DateTime                     @default(now()) @map("created_at")
+  last_updated_at        DateTime                     @updatedAt @map("last_updated_at")
+  isArchived             Boolean
+  isRead                 Boolean
+  isStarred              Boolean
+  subject_embedding      Unsupported("vector(1536)")?
+  body_embedding         Unsupported("vector(1536)")?
+  sender_embedding       Unsupported("vector(1536)")?
+  receiver_embedding     Unsupported("vector(1536)")?
+  source                 Source                       @relation(fields: [source_id], references: [id])
+  folders                FolderMessage[]              @relation("FolderMessageToMessage")
   MessageCompanyRelation MessageCompanyRelation[]
 
   @@index([ms_message_id])
@@ -572,17 +572,17 @@ model Message {
 }
 
 model MessageCompanyRelation {
-  id              String      @id @default(uuid()) @db.Uuid
-  message_id      String      @unique @db.Uuid   
-  company_id      String      @db.Uuid
-  relevance_score Float?
-  match_reasons   Json?        
-  created_at      DateTime    @default(now())
-  
+  id              String   @id @default(uuid()) @db.Uuid
+  message_id      String   @db.Uuid
+  company_id      String   @db.Uuid
+  relevance_score Float
+  match_reasons   Json // Array of reasons for the match
+  created_at      DateTime @default(now())
   // Relations
-  message         Message?    @relation(fields: [message_id], references: [id])
-  company         Company?    @relation(fields: [company_id], references: [id])
+  message         Message  @relation(fields: [message_id], references: [id])
+  company         Company  @relation(fields: [company_id], references: [id])
 
+  @@unique([message_id, company_id]) // Prevent duplicate relations
   @@index([message_id])
   @@index([company_id])
 }
@@ -708,6 +708,7 @@ model Thread {
   thread_messages   ThreadMessage[]
   participants      ThreadParticipants[] @relation("ThreadToThreadParticipants")
 
+  @@unique([thread_context_id, context_hash])
   @@index([domain])
   @@index([conversation_id])
   @@index([context_hash])
@@ -715,7 +716,6 @@ model Thread {
   @@index([domain, conversation_id])
   @@index([ms_message_id], type: Gin)
   @@index([message_db_ids], type: Gin)
-  @@unique([thread_context_id, context_hash])
 }
 
 model ThreadMessage {
@@ -908,31 +908,31 @@ model Agreement {
 }
 
 model Company {
-  id                    String        @id @default(uuid()) @db.Uuid
-  name                  String
-  website               String
-  domain                String        @unique
-  size                  String?
-  revenue               String?
-  industry              String?
-  created_by            String?       @map("created_by")
-  created_at            DateTime      @default(now())
-  last_updated_by       String?       @map("last_updated_by")
-  last_updated_at       DateTime      @updatedAt @map("last_updated_at")
-  status                String
-  is_deleted            Boolean       @default(false)
-  deleted_at            DateTime?     @map("deleted_at")
-  deleted_by            String?       @map("deleted_by")
-  organization_id       String?
-  careers_page          String?
-  linkedin_url          String?
-  raw_body              Json?
-  research_analyst      String?       @db.Uuid
-  recruiter_assignee_id String?       @db.Uuid
-  status_rel            CompanyStatus @relation(fields: [status], references: [value])
-  contacts              Contact[]
-  Lead                  Lead[]
-  positions             Position[]
+  id                     String                   @id @default(uuid()) @db.Uuid
+  name                   String
+  website                String
+  domain                 String                   @unique
+  size                   String?
+  revenue                String?
+  industry               String?
+  created_by             String?                  @map("created_by")
+  created_at             DateTime                 @default(now())
+  last_updated_by        String?                  @map("last_updated_by")
+  last_updated_at        DateTime                 @updatedAt @map("last_updated_at")
+  status                 String
+  is_deleted             Boolean                  @default(false)
+  deleted_at             DateTime?                @map("deleted_at")
+  deleted_by             String?                  @map("deleted_by")
+  organization_id        String?
+  careers_page           String?
+  linkedin_url           String?
+  raw_body               Json?
+  research_analyst       String?                  @db.Uuid
+  recruiter_assignee_id  String?                  @db.Uuid
+  status_rel             CompanyStatus            @relation(fields: [status], references: [value])
+  contacts               Contact[]
+  Lead                   Lead[]
+  positions              Position[]
   MessageCompanyRelation MessageCompanyRelation[]
 
   @@unique([id, is_deleted, name, status])
@@ -1611,7 +1611,6 @@ model Reminder {
   @@index([remind_at, is_sent])
   @@map("reminders")
 }
-
 
 enum AuthStrategy {
   API_KEY

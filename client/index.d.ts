@@ -44178,8 +44178,8 @@ export namespace Prisma {
     id: string
     message_id: string
     company_id: string
-    relevance_score: number | null
-    match_reasons: JsonValue | null
+    relevance_score: number
+    match_reasons: JsonValue
     created_at: Date
     _count: MessageCompanyRelationCountAggregateOutputType | null
     _avg: MessageCompanyRelationAvgAggregateOutputType | null
@@ -44209,8 +44209,8 @@ export namespace Prisma {
     relevance_score?: boolean
     match_reasons?: boolean
     created_at?: boolean
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["messageCompanyRelation"]>
 
   export type MessageCompanyRelationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -44220,8 +44220,8 @@ export namespace Prisma {
     relevance_score?: boolean
     match_reasons?: boolean
     created_at?: boolean
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["messageCompanyRelation"]>
 
   export type MessageCompanyRelationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -44231,8 +44231,8 @@ export namespace Prisma {
     relevance_score?: boolean
     match_reasons?: boolean
     created_at?: boolean
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["messageCompanyRelation"]>
 
   export type MessageCompanyRelationSelectScalar = {
@@ -44246,30 +44246,30 @@ export namespace Prisma {
 
   export type MessageCompanyRelationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "message_id" | "company_id" | "relevance_score" | "match_reasons" | "created_at", ExtArgs["result"]["messageCompanyRelation"]>
   export type MessageCompanyRelationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }
   export type MessageCompanyRelationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }
   export type MessageCompanyRelationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    message?: boolean | MessageCompanyRelation$messageArgs<ExtArgs>
-    company?: boolean | MessageCompanyRelation$companyArgs<ExtArgs>
+    message?: boolean | MessageDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }
 
   export type $MessageCompanyRelationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "MessageCompanyRelation"
     objects: {
-      message: Prisma.$MessagePayload<ExtArgs> | null
-      company: Prisma.$CompanyPayload<ExtArgs> | null
+      message: Prisma.$MessagePayload<ExtArgs>
+      company: Prisma.$CompanyPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       message_id: string
       company_id: string
-      relevance_score: number | null
-      match_reasons: Prisma.JsonValue | null
+      relevance_score: number
+      match_reasons: Prisma.JsonValue
       created_at: Date
     }, ExtArgs["result"]["messageCompanyRelation"]>
     composites: {}
@@ -44665,8 +44665,8 @@ export namespace Prisma {
    */
   export interface Prisma__MessageCompanyRelationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    message<T extends MessageCompanyRelation$messageArgs<ExtArgs> = {}>(args?: Subset<T, MessageCompanyRelation$messageArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
-    company<T extends MessageCompanyRelation$companyArgs<ExtArgs> = {}>(args?: Subset<T, MessageCompanyRelation$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
+    message<T extends MessageDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MessageDefaultArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -45083,44 +45083,6 @@ export namespace Prisma {
      * Filter which MessageCompanyRelations to delete
      */
     where?: MessageCompanyRelationWhereInput
-  }
-
-  /**
-   * MessageCompanyRelation.message
-   */
-  export type MessageCompanyRelation$messageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Message
-     */
-    select?: MessageSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Message
-     */
-    omit?: MessageOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: MessageInclude<ExtArgs> | null
-    where?: MessageWhereInput
-  }
-
-  /**
-   * MessageCompanyRelation.company
-   */
-  export type MessageCompanyRelation$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Company
-     */
-    select?: CompanySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Company
-     */
-    omit?: CompanyOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: CompanyInclude<ExtArgs> | null
-    where?: CompanyWhereInput
   }
 
   /**
@@ -105929,19 +105891,19 @@ export namespace Prisma {
     id?: UuidFilter<"MessageCompanyRelation"> | string
     message_id?: UuidFilter<"MessageCompanyRelation"> | string
     company_id?: UuidFilter<"MessageCompanyRelation"> | string
-    relevance_score?: FloatNullableFilter<"MessageCompanyRelation"> | number | null
-    match_reasons?: JsonNullableFilter<"MessageCompanyRelation">
+    relevance_score?: FloatFilter<"MessageCompanyRelation"> | number
+    match_reasons?: JsonFilter<"MessageCompanyRelation">
     created_at?: DateTimeFilter<"MessageCompanyRelation"> | Date | string
-    message?: XOR<MessageNullableScalarRelationFilter, MessageWhereInput> | null
-    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
+    message?: XOR<MessageScalarRelationFilter, MessageWhereInput>
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
   }
 
   export type MessageCompanyRelationOrderByWithRelationInput = {
     id?: SortOrder
     message_id?: SortOrder
     company_id?: SortOrder
-    relevance_score?: SortOrderInput | SortOrder
-    match_reasons?: SortOrderInput | SortOrder
+    relevance_score?: SortOrder
+    match_reasons?: SortOrder
     created_at?: SortOrder
     message?: MessageOrderByWithRelationInput
     company?: CompanyOrderByWithRelationInput
@@ -105950,24 +105912,25 @@ export namespace Prisma {
 
   export type MessageCompanyRelationWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    message_id?: string
+    message_id_company_id?: MessageCompanyRelationMessage_idCompany_idCompoundUniqueInput
     AND?: MessageCompanyRelationWhereInput | MessageCompanyRelationWhereInput[]
     OR?: MessageCompanyRelationWhereInput[]
     NOT?: MessageCompanyRelationWhereInput | MessageCompanyRelationWhereInput[]
+    message_id?: UuidFilter<"MessageCompanyRelation"> | string
     company_id?: UuidFilter<"MessageCompanyRelation"> | string
-    relevance_score?: FloatNullableFilter<"MessageCompanyRelation"> | number | null
-    match_reasons?: JsonNullableFilter<"MessageCompanyRelation">
+    relevance_score?: FloatFilter<"MessageCompanyRelation"> | number
+    match_reasons?: JsonFilter<"MessageCompanyRelation">
     created_at?: DateTimeFilter<"MessageCompanyRelation"> | Date | string
-    message?: XOR<MessageNullableScalarRelationFilter, MessageWhereInput> | null
-    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
-  }, "id" | "message_id">
+    message?: XOR<MessageScalarRelationFilter, MessageWhereInput>
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
+  }, "id" | "message_id_company_id">
 
   export type MessageCompanyRelationOrderByWithAggregationInput = {
     id?: SortOrder
     message_id?: SortOrder
     company_id?: SortOrder
-    relevance_score?: SortOrderInput | SortOrder
-    match_reasons?: SortOrderInput | SortOrder
+    relevance_score?: SortOrder
+    match_reasons?: SortOrder
     created_at?: SortOrder
     _count?: MessageCompanyRelationCountOrderByAggregateInput
     _avg?: MessageCompanyRelationAvgOrderByAggregateInput
@@ -105983,8 +105946,8 @@ export namespace Prisma {
     id?: UuidWithAggregatesFilter<"MessageCompanyRelation"> | string
     message_id?: UuidWithAggregatesFilter<"MessageCompanyRelation"> | string
     company_id?: UuidWithAggregatesFilter<"MessageCompanyRelation"> | string
-    relevance_score?: FloatNullableWithAggregatesFilter<"MessageCompanyRelation"> | number | null
-    match_reasons?: JsonNullableWithAggregatesFilter<"MessageCompanyRelation">
+    relevance_score?: FloatWithAggregatesFilter<"MessageCompanyRelation"> | number
+    match_reasons?: JsonWithAggregatesFilter<"MessageCompanyRelation">
     created_at?: DateTimeWithAggregatesFilter<"MessageCompanyRelation"> | Date | string
   }
 
@@ -112989,37 +112952,37 @@ export namespace Prisma {
 
   export type MessageCompanyRelationCreateInput = {
     id?: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
-    message?: MessageCreateNestedOneWithoutMessageCompanyRelationInput
-    company?: CompanyCreateNestedOneWithoutMessageCompanyRelationInput
+    message: MessageCreateNestedOneWithoutMessageCompanyRelationInput
+    company: CompanyCreateNestedOneWithoutMessageCompanyRelationInput
   }
 
   export type MessageCompanyRelationUncheckedCreateInput = {
     id?: string
     message_id: string
     company_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
   export type MessageCompanyRelationUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    message?: MessageUpdateOneWithoutMessageCompanyRelationNestedInput
-    company?: CompanyUpdateOneWithoutMessageCompanyRelationNestedInput
+    message?: MessageUpdateOneRequiredWithoutMessageCompanyRelationNestedInput
+    company?: CompanyUpdateOneRequiredWithoutMessageCompanyRelationNestedInput
   }
 
   export type MessageCompanyRelationUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     message_id?: StringFieldUpdateOperationsInput | string
     company_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -113027,15 +112990,15 @@ export namespace Prisma {
     id?: string
     message_id: string
     company_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
   export type MessageCompanyRelationUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -113043,8 +113006,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     message_id?: StringFieldUpdateOperationsInput | string
     company_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -120545,20 +120508,25 @@ export namespace Prisma {
     isStarred?: SortOrder
   }
 
-  export type MessageNullableScalarRelationFilter = {
-    is?: MessageWhereInput | null
-    isNot?: MessageWhereInput | null
+  export type MessageScalarRelationFilter = {
+    is?: MessageWhereInput
+    isNot?: MessageWhereInput
   }
 
-  export type CompanyNullableScalarRelationFilter = {
-    is?: CompanyWhereInput | null
-    isNot?: CompanyWhereInput | null
+  export type CompanyScalarRelationFilter = {
+    is?: CompanyWhereInput
+    isNot?: CompanyWhereInput
   }
 
   export type MessageCompanyRelationOrderByRelevanceInput = {
     fields: MessageCompanyRelationOrderByRelevanceFieldEnum | MessageCompanyRelationOrderByRelevanceFieldEnum[]
     sort: SortOrder
     search: string
+  }
+
+  export type MessageCompanyRelationMessage_idCompany_idCompoundUniqueInput = {
+    message_id: string
+    company_id: string
   }
 
   export type MessageCompanyRelationCountOrderByAggregateInput = {
@@ -121429,6 +121397,11 @@ export namespace Prisma {
     message_id?: SortOrder
   }
 
+  export type CompanyNullableScalarRelationFilter = {
+    is?: CompanyWhereInput | null
+    isNot?: CompanyWhereInput | null
+  }
+
   export type LeadOrderByRelevanceInput = {
     fields: LeadOrderByRelevanceFieldEnum | LeadOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -121758,11 +121731,6 @@ export namespace Prisma {
     value?: SortOrder
     created_by?: SortOrder
     created_at?: SortOrder
-  }
-
-  export type CompanyScalarRelationFilter = {
-    is?: CompanyWhereInput
-    isNot?: CompanyWhereInput
   }
 
   export type POCListRelationFilter = {
@@ -125676,22 +125644,18 @@ export namespace Prisma {
     connect?: CompanyWhereUniqueInput
   }
 
-  export type MessageUpdateOneWithoutMessageCompanyRelationNestedInput = {
+  export type MessageUpdateOneRequiredWithoutMessageCompanyRelationNestedInput = {
     create?: XOR<MessageCreateWithoutMessageCompanyRelationInput, MessageUncheckedCreateWithoutMessageCompanyRelationInput>
     connectOrCreate?: MessageCreateOrConnectWithoutMessageCompanyRelationInput
     upsert?: MessageUpsertWithoutMessageCompanyRelationInput
-    disconnect?: MessageWhereInput | boolean
-    delete?: MessageWhereInput | boolean
     connect?: MessageWhereUniqueInput
     update?: XOR<XOR<MessageUpdateToOneWithWhereWithoutMessageCompanyRelationInput, MessageUpdateWithoutMessageCompanyRelationInput>, MessageUncheckedUpdateWithoutMessageCompanyRelationInput>
   }
 
-  export type CompanyUpdateOneWithoutMessageCompanyRelationNestedInput = {
+  export type CompanyUpdateOneRequiredWithoutMessageCompanyRelationNestedInput = {
     create?: XOR<CompanyCreateWithoutMessageCompanyRelationInput, CompanyUncheckedCreateWithoutMessageCompanyRelationInput>
     connectOrCreate?: CompanyCreateOrConnectWithoutMessageCompanyRelationInput
     upsert?: CompanyUpsertWithoutMessageCompanyRelationInput
-    disconnect?: CompanyWhereInput | boolean
-    delete?: CompanyWhereInput | boolean
     connect?: CompanyWhereUniqueInput
     update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutMessageCompanyRelationInput, CompanyUpdateWithoutMessageCompanyRelationInput>, CompanyUncheckedUpdateWithoutMessageCompanyRelationInput>
   }
@@ -133411,17 +133375,17 @@ export namespace Prisma {
 
   export type MessageCompanyRelationCreateWithoutMessageInput = {
     id?: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
-    company?: CompanyCreateNestedOneWithoutMessageCompanyRelationInput
+    company: CompanyCreateNestedOneWithoutMessageCompanyRelationInput
   }
 
   export type MessageCompanyRelationUncheckedCreateWithoutMessageInput = {
     id?: string
     company_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
@@ -133504,8 +133468,8 @@ export namespace Prisma {
     id?: UuidFilter<"MessageCompanyRelation"> | string
     message_id?: UuidFilter<"MessageCompanyRelation"> | string
     company_id?: UuidFilter<"MessageCompanyRelation"> | string
-    relevance_score?: FloatNullableFilter<"MessageCompanyRelation"> | number | null
-    match_reasons?: JsonNullableFilter<"MessageCompanyRelation">
+    relevance_score?: FloatFilter<"MessageCompanyRelation"> | number
+    match_reasons?: JsonFilter<"MessageCompanyRelation">
     created_at?: DateTimeFilter<"MessageCompanyRelation"> | Date | string
   }
 
@@ -135732,17 +135696,17 @@ export namespace Prisma {
 
   export type MessageCompanyRelationCreateWithoutCompanyInput = {
     id?: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
-    message?: MessageCreateNestedOneWithoutMessageCompanyRelationInput
+    message: MessageCreateNestedOneWithoutMessageCompanyRelationInput
   }
 
   export type MessageCompanyRelationUncheckedCreateWithoutCompanyInput = {
     id?: string
     message_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
@@ -142658,8 +142622,8 @@ export namespace Prisma {
   export type MessageCompanyRelationCreateManyMessageInput = {
     id?: string
     company_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
@@ -142683,25 +142647,25 @@ export namespace Prisma {
 
   export type MessageCompanyRelationUpdateWithoutMessageInput = {
     id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    company?: CompanyUpdateOneWithoutMessageCompanyRelationNestedInput
+    company?: CompanyUpdateOneRequiredWithoutMessageCompanyRelationNestedInput
   }
 
   export type MessageCompanyRelationUncheckedUpdateWithoutMessageInput = {
     id?: StringFieldUpdateOperationsInput | string
     company_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MessageCompanyRelationUncheckedUpdateManyWithoutMessageInput = {
     id?: StringFieldUpdateOperationsInput | string
     company_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -143323,8 +143287,8 @@ export namespace Prisma {
   export type MessageCompanyRelationCreateManyCompanyInput = {
     id?: string
     message_id: string
-    relevance_score?: number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score: number
+    match_reasons: JsonNullValueInput | InputJsonValue
     created_at?: Date | string
   }
 
@@ -143612,25 +143576,25 @@ export namespace Prisma {
 
   export type MessageCompanyRelationUpdateWithoutCompanyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    message?: MessageUpdateOneWithoutMessageCompanyRelationNestedInput
+    message?: MessageUpdateOneRequiredWithoutMessageCompanyRelationNestedInput
   }
 
   export type MessageCompanyRelationUncheckedUpdateWithoutCompanyInput = {
     id?: StringFieldUpdateOperationsInput | string
     message_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MessageCompanyRelationUncheckedUpdateManyWithoutCompanyInput = {
     id?: StringFieldUpdateOperationsInput | string
     message_id?: StringFieldUpdateOperationsInput | string
-    relevance_score?: NullableFloatFieldUpdateOperationsInput | number | null
-    match_reasons?: NullableJsonNullValueInput | InputJsonValue
+    relevance_score?: FloatFieldUpdateOperationsInput | number
+    match_reasons?: JsonNullValueInput | InputJsonValue
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

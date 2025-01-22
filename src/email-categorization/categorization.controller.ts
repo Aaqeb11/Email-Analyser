@@ -1,6 +1,20 @@
-import { Controller, Get, Logger, Post } from "@nestjs/common";
+import { Body, Controller, Get, Logger, Post } from "@nestjs/common";
 import { CategorizationService } from "./categorization.service";
 import { PrismaService } from "src/prisma.service";
+import { CompanyClassificationService } from "./classificatoin.service";
+
+interface IEmailRequest {
+    id: string;
+    ms_message_id?: string;
+    subject?: string;
+    sender_name?: string;
+    sender_email: string;
+    body: string;
+    recipients?: any;
+    cc_recipients?: any;
+    bcc_recipients?: any;
+    meta_data?: any;
+}
 
 @Controller()
 export class CategorizationController {
@@ -9,7 +23,8 @@ export class CategorizationController {
 
     constructor(
         private categorizationService: CategorizationService,
-        private prisma: PrismaService
+        private prisma: PrismaService,
+        private classificationService:CompanyClassificationService
     ) {}
 
     @Get('health')
@@ -78,6 +93,107 @@ export class CategorizationController {
         } catch (error) {
             this.logger.error(`Error in batch categorization: ${error.message}`);
             throw error;
+        }
+    }
+    
+    // @Post('classify')
+    // async companyClassify(@Body() email: IEmailRequest){
+    //     try {
+    //         this.logger.log(`Processing single email classification for: ${email.id}`);
+    //         const result = await this.classificationService.processEmail(email);
+            
+    //         return {
+    //             success: true,
+    //             message: `Email classified successfully`,
+    //             matches: result.map(match => ({
+    //                 companyName: match.client,
+    //                 score: match.match_score
+    //             }))
+    //         };
+    //     } catch (error) {
+    //         this.logger.error(`Error classifying email: ${error.message}`);
+    //         return {
+    //             success: false,
+    //             message: `Classification failed: ${error.message}`,
+    //             matches: []
+    //         };
+    //     }
+    // }
+
+    @Post('classify-all')
+    async classifyAllMessages() {
+        try {
+            let processedCount = 0;
+            let successCount = 0;
+            let failureCount = 0;
+            let skip = 0;
+    
+            while (true) {
+                const messages = await this.prisma.primary.message.findMany({
+                    where: {
+                        MessageCompanyRelation: {
+                            none: {}
+                        }
+                    },
+                    take: this.BATCH_SIZE,
+                    skip: skip,
+                    // orderBy: {
+                    //     created_at: 'a'
+                    // },
+                    select: {
+                        id: true,
+                        ms_message_id: true,
+                        subject: true,
+                        sender_name: true,
+                        sender_email: true,
+                        body: true,
+                        recipients: true,
+                        cc_recipients: true,
+                        bcc_recipients: true,
+                        meta_data: true
+                    }
+                });
+    
+                if (messages.length === 0) {
+                    break;
+                }
+    
+                for (const message of messages) {
+                    try {
+                        const result = await this.classificationService.processEmail(message);
+                        if (result && result.length > 0) {
+                            this.logger.log("result is", result);
+                            successCount++;
+                        } else {
+                            failureCount++;
+                        }
+                    } catch (error) {
+                        failureCount++;
+                    }
+                    processedCount++;
+                }
+                skip += this.BATCH_SIZE;
+            }
+    
+            return {
+                success: true,
+                message: 'Classification complete',
+                stats: {
+                    total: processedCount,
+                    successful: successCount,
+                    failed: failureCount
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: `Classification failed: ${error.message}`,
+                stats: {
+                    total: 0,
+                    successful: 0,
+                    failed: 0
+                }
+            };
         }
     }
 }

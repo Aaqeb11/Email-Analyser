@@ -471,6 +471,15 @@ exports.Prisma.MessageScalarFieldEnum = {
   isStarred: 'isStarred'
 };
 
+exports.Prisma.MessageCompanyRelationScalarFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id',
+  relevance_score: 'relevance_score',
+  match_reasons: 'match_reasons',
+  created_at: 'created_at'
+};
+
 exports.Prisma.AttachmentScalarFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -1434,6 +1443,12 @@ exports.Prisma.MessageOrderByRelevanceFieldEnum = {
   source_id: 'source_id'
 };
 
+exports.Prisma.MessageCompanyRelationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id'
+};
+
 exports.Prisma.AttachmentOrderByRelevanceFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -2228,6 +2243,7 @@ exports.Prisma.ModelName = {
   MessageType: 'MessageType',
   Source: 'Source',
   Message: 'Message',
+  MessageCompanyRelation: 'MessageCompanyRelation',
   Attachment: 'Attachment',
   Document: 'Document',
   Folder: 'Folder',

@@ -1,5 +1,6 @@
 // src/email/dto/email.dto.ts
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated/client-primary';
 import { z } from 'zod';
 
 export interface EmailAttachment {
@@ -51,9 +52,9 @@ export class CreateEmailDto {
   sender: Prisma.JsonValue;
   receiver: Prisma.JsonValue;
 }
-export type EmailWithEmbedding = Prisma.EmailCreateInput & {
-  embedding?: number[];
-};
+// export type EmailWithEmbedding = Prisma.EmailCreateInput & {
+//   embedding?: number[];
+// };
 
 export interface SimilarEmail {
   id: string;
@@ -72,6 +73,57 @@ export interface SimilarEmail {
 export interface UploadPathDto {
   filePath: string;
 }
+interface Instance {
+  name: string;
+  confidence: number;
+  metadata?: Record<string, any>;
+}
+
+function parseValidatedClassifications(messageContent: string): ClassificationResponse {
+  try {
+    // Split the content by bullet points to separate categories
+    const categories = messageContent.split(/\n-\s+/);
+    
+    const classifications: Classification[] = [];
+    
+    // Process each category section
+    for (const category of categories) {
+      if (!category.trim()) continue;
+      
+      // Extract category name
+      const categoryMatch = category.match(/\*\*(.*?)\*\*:/);
+      if (!categoryMatch) continue;
+      
+      const categoryName = categoryMatch[1];
+      const instances: ClassificationInstance[] = [];
+      
+      // Extract instances using regex
+      const instanceMatches = category.matchAll(/(\w+(?:\s+\w+)*?):\s+Validated with a confidence of ([\d.]+)/g);
+      
+      for (const match of instanceMatches) {
+        instances.push({
+          name: match[1].trim(),
+          confidence: parseFloat(match[2]),
+          metadata: {}
+        });
+      }
+      
+      if (instances.length > 0) {
+        classifications.push({
+          category: categoryName,
+          instances
+        });
+      }
+    }
+    
+    return { classifications };
+  } catch (error) {
+    console.error('Error parsing validated classifications:', error);
+    return { classifications: [] };
+  }
+}
+
+export default parseValidatedClassifications;
 
 
 

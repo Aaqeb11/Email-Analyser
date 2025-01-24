@@ -22,6 +22,7 @@ interface IEmailParticipants {
   const schema='019403ee-2961-7f8e-9682-c2c5dede384b'
 
   export interface IMessage {
+    [x: string]: any;
     id: string;
     ms_message_id?: string;
     subject?: string;

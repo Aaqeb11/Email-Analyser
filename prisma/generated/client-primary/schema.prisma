@@ -11,8 +11,7 @@ generator dbml {
 datasource db {
   provider   = "postgresql"
   url        = env("PRIMARY_DATABASE_URL")
-  // directUrl  = env("DIRECT_URL")
-  extensions = [uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(map: "vector", schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
 }
 
 model TenantConfiguration {
@@ -533,8 +532,8 @@ model Source {
 }
 
 model Message {
-  id                     String                       @id @default(uuid()) @db.Uuid
-  ms_message_id          String                       @unique
+  id                     String                   @id @default(uuid()) @db.Uuid
+  ms_message_id          String                   @unique
   subject                String?
   sender_name            String?
   sender_email           String
@@ -546,22 +545,22 @@ model Message {
   cc_recipients          Json?
   bcc_recipients         Json?
   reply_to               Json?
-  has_attachments        Boolean                      @default(false)
+  has_attachments        Boolean                  @default(false)
   summary                Json?
   meta_data              Json
-  source_id              String                       @db.Uuid
-  created_at             DateTime                     @default(now()) @map("created_at")
-  last_updated_at        DateTime                     @updatedAt @map("last_updated_at")
+  source_id              String                   @db.Uuid
+  created_at             DateTime                 @default(now()) @map("created_at")
+  last_updated_at        DateTime                 @updatedAt @map("last_updated_at")
   isArchived             Boolean
   isRead                 Boolean
   isStarred              Boolean
-  subject_embedding      Unsupported("vector(1536)")?
-  body_embedding         Unsupported("vector(1536)")?
-  sender_embedding       Unsupported("vector(1536)")?
-  receiver_embedding     Unsupported("vector(1536)")?
-  source                 Source                       @relation(fields: [source_id], references: [id])
-  folders                FolderMessage[]              @relation("FolderMessageToMessage")
+  subject_embedding      Unsupported("vector")?
+  body_embedding         Unsupported("vector")?
+  sender_embedding       Unsupported("vector")?
+  receiver_embedding     Unsupported("vector")?
   MessageCompanyRelation MessageCompanyRelation[]
+  source                 Source                   @relation(fields: [source_id], references: [id])
+  folders                FolderMessage[]          @relation("FolderMessageToMessage")
 
   @@index([ms_message_id])
   @@index([received_date_time(sort: Desc)])
@@ -573,16 +572,15 @@ model Message {
 
 model MessageCompanyRelation {
   id              String   @id @default(uuid()) @db.Uuid
-  message_id      String   @unique @db.Uuid
+  message_id      String   @db.Uuid
   company_id      String   @db.Uuid
-  relevance_score Float?
-  match_reasons   Json?
+  relevance_score Float
+  match_reasons   Json
   created_at      DateTime @default(now())
+  company         Company  @relation(fields: [company_id], references: [id])
+  message         Message  @relation(fields: [message_id], references: [id])
 
-  // Relations
-  message Message? @relation(fields: [message_id], references: [id])
-  company Company? @relation(fields: [company_id], references: [id])
-
+  @@unique([message_id, company_id])
   @@index([message_id])
   @@index([company_id])
 }
@@ -814,12 +812,12 @@ model ThreadContextItems {
 }
 
 model Conversation {
-  id                 String            @id @default(uuid()) @db.Uuid
-  domain             String            @unique
+  id                 String   @id @default(uuid()) @db.Uuid
+  domain             String   @unique
   threads            Json[]
-  created_at         DateTime          @default(now()) @map("created_at")
-  last_updated_at    DateTime          @updatedAt @map("last_updated_at")
-  conversation_topic ConversationTopic
+  created_at         DateTime @default(now()) @map("created_at")
+  last_updated_at    DateTime @updatedAt @map("last_updated_at")
+  conversation_topic String
 
   @@index([domain])
   @@index([domain, conversation_topic])
@@ -929,11 +927,11 @@ model Company {
   raw_body               Json?
   research_analyst       String?                  @db.Uuid
   recruiter_assignee_id  String?                  @db.Uuid
+  MessageCompanyRelation MessageCompanyRelation[]
   status_rel             CompanyStatus            @relation(fields: [status], references: [value])
   contacts               Contact[]
   Lead                   Lead[]
   positions              Position[]
-  MessageCompanyRelation MessageCompanyRelation[]
 
   @@unique([id, is_deleted, name, status])
   @@unique([id, name])

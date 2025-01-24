@@ -2,6 +2,7 @@ import { Body, Controller, Get, Logger, Post } from "@nestjs/common";
 import { CategorizationService } from "./categorization.service";
 import { PrismaService } from "src/prisma.service";
 import { CompanyClassificationService } from "./classificatoin.service";
+import { ConversationService } from "./conversation.service";
 
 interface IEmailRequest {
     id: string;
@@ -24,7 +25,8 @@ export class CategorizationController {
     constructor(
         private categorizationService: CategorizationService,
         private prisma: PrismaService,
-        private classificationService:CompanyClassificationService
+        private classificationService:CompanyClassificationService,
+        private conversationService:ConversationService
     ) {}
 
     @Get('health')
@@ -194,6 +196,78 @@ export class CategorizationController {
                     failed: 0
                 }
             };
+        }
+    }
+
+    @Get('fetch-vector')
+    async fetchVectors(){
+        // try{
+            
+        //     const result =await this.conversationService.processEmail('9965cd1e-0f03-4fa6-b86b-8c542116e78e')
+        //     this.logger.log(result)
+        // }catch(error){
+        //     this.logger.log(error)
+        // }
+        this.logger.log('Starting batch categorization of all messages');
+        
+        try {
+            let processedCount = 0;
+            let successCount = 0;
+            let failureCount = 0;
+            let skip = 0;
+
+            while (true) {
+                // Fetch batch of messages with only necessary fields
+                const messages = await this.prisma.primary.message.findMany({
+                    take: this.BATCH_SIZE,
+                    skip: skip,
+                    orderBy: {
+                        created_at: 'asc'
+                    },
+                    select: {
+                        id: true,
+                        ms_message_id: true,
+                        subject: true,
+                        sender_name: true,
+                        sender_email: true,
+                        body: true,
+                        recipients: true,
+                        cc_recipients: true,
+                        bcc_recipients: true,
+                        meta_data: true
+                    }
+                });
+
+                // Break if no more messages
+                if (messages.length === 0) {
+                    break;
+                }
+
+                // Process batch
+                for (const message of messages) {
+                    try {
+                        const result = await this.conversationService.processEmail(message);
+                        // if (result.includes('successfully')) {
+                        //     successCount++;
+                        // } else {
+                        //     failureCount++;
+                        // }
+                        this.logger.log("result is ",result)
+                    } catch (error) {
+                        this.logger.error(`Error processing message ${message.id}: ${error.message}`);
+                        failureCount++;
+                    }
+                    processedCount++;
+                }
+
+                this.logger.log(`Processed ${processedCount} messages so far`);
+                skip += this.BATCH_SIZE;
+            }
+
+            return `Categorization complete. Total processed: ${processedCount}, Successfully processed: ${successCount}, Failed: ${failureCount}`;
+        } catch (error) {
+            this.logger.error(`Error in batch categorization: ${error.message}`);
+            throw error;
         }
     }
 }

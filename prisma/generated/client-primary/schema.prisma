@@ -1,4 +1,4 @@
-generator Pclient {
+generator pclient {
   provider        = "prisma-client-js"
   output          = "./generated/client-primary"
   previewFeatures = ["fullTextSearchPostgres", "metrics", "postgresqlExtensions", "prismaSchemaFolder"]
@@ -11,7 +11,6 @@ generator dbml {
 datasource db {
   provider   = "postgresql"
   url        = env("PRIMARY_DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
   extensions = [uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
 }
 
@@ -533,31 +532,35 @@ model Source {
 }
 
 model Message {
-  id                  String                       @id @default(uuid()) @db.Uuid
-  ms_message_id       String                       @unique
-  subject             String?
-  sender_name         String?
-  sender_email        String
-  received_date_time  DateTime?
-  sent_date_time      DateTime?
-  body                String
-  body_preview        String?
-  recipients          Json?
-  cc_recipients       Json?
-  bcc_recipients      Json?
-  reply_to            Json?
-  has_attachments     Boolean                      @default(false)
-  summary             Json?
-  meta_data           Json
-  source_id           String                       @db.Uuid
-  created_at          DateTime                     @default(now()) @map("created_at")
-  last_updated_at     DateTime                     @updatedAt @map("last_updated_at")
-  isArchived          Boolean
-  isRead              Boolean
-  isStarred           Boolean
-  source              Source                       @relation(fields: [source_id], references: [id])
-  folders             FolderMessage[]              @relation("FolderMessageToMessage")
-  baigan_ki_embedding Unsupported("vector(1536)")?
+  id                     String                   @id @default(uuid()) @db.Uuid
+  ms_message_id          String                   @unique
+  subject                String?
+  sender_name            String?
+  sender_email           String
+  received_date_time     DateTime?
+  sent_date_time         DateTime?
+  body                   String
+  body_preview           String?
+  recipients             Json?
+  cc_recipients          Json?
+  bcc_recipients         Json?
+  reply_to               Json?
+  has_attachments        Boolean                  @default(false)
+  summary                Json?
+  meta_data              Json
+  source_id              String                   @db.Uuid
+  created_at             DateTime                 @default(now()) @map("created_at")
+  last_updated_at        DateTime                 @updatedAt @map("last_updated_at")
+  isArchived             Boolean
+  isRead                 Boolean
+  isStarred              Boolean
+  subject_embedding      Unsupported("vector")?
+  body_embedding         Unsupported("vector")?
+  sender_embedding       Unsupported("vector")?
+  receiver_embedding     Unsupported("vector")?
+  MessageCompanyRelation MessageCompanyRelation[]
+  source                 Source                   @relation(fields: [source_id], references: [id])
+  folders                FolderMessage[]          @relation("FolderMessageToMessage")
 
   @@index([ms_message_id])
   @@index([received_date_time(sort: Desc)])
@@ -565,6 +568,21 @@ model Message {
   @@index([sender_email])
   @@index([source_id])
   @@map("messages")
+}
+
+model MessageCompanyRelation {
+  id              String   @id @default(uuid()) @db.Uuid
+  message_id      String   @db.Uuid
+  company_id      String   @db.Uuid
+  relevance_score Float
+  match_reasons   Json
+  created_at      DateTime @default(now())
+  company         Company  @relation(fields: [company_id], references: [id])
+  message         Message  @relation(fields: [message_id], references: [id])
+
+  @@unique([message_id, company_id])
+  @@index([message_id])
+  @@index([company_id])
 }
 
 model Attachment {
@@ -794,12 +812,12 @@ model ThreadContextItems {
 }
 
 model Conversation {
-  id                 String            @id @default(uuid()) @db.Uuid
-  domain             String            @unique
+  id                 String   @id @default(uuid()) @db.Uuid
+  domain             String   @unique
   threads            Json[]
-  created_at         DateTime          @default(now()) @map("created_at")
-  last_updated_at    DateTime          @updatedAt @map("last_updated_at")
-  conversation_topic ConversationTopic
+  created_at         DateTime @default(now()) @map("created_at")
+  last_updated_at    DateTime @updatedAt @map("last_updated_at")
+  conversation_topic String
 
   @@index([domain])
   @@index([domain, conversation_topic])
@@ -888,31 +906,32 @@ model Agreement {
 }
 
 model Company {
-  id                    String        @id @default(uuid()) @db.Uuid
-  name                  String
-  website               String
-  domain                String        @unique
-  size                  String?
-  revenue               String?
-  industry              String?
-  created_by            String?       @map("created_by")
-  created_at            DateTime      @default(now())
-  last_updated_by       String?       @map("last_updated_by")
-  last_updated_at       DateTime      @updatedAt @map("last_updated_at")
-  status                String
-  is_deleted            Boolean       @default(false)
-  deleted_at            DateTime?     @map("deleted_at")
-  deleted_by            String?       @map("deleted_by")
-  organization_id       String?
-  careers_page          String?
-  linkedin_url          String?
-  raw_body              Json?
-  research_analyst      String?       @db.Uuid
-  recruiter_assignee_id String?       @db.Uuid
-  status_rel            CompanyStatus @relation(fields: [status], references: [value])
-  contacts              Contact[]
-  Lead                  Lead[]
-  positions             Position[]
+  id                     String                   @id @default(uuid()) @db.Uuid
+  name                   String
+  website                String
+  domain                 String                   @unique
+  size                   String?
+  revenue                String?
+  industry               String?
+  created_by             String?                  @map("created_by")
+  created_at             DateTime                 @default(now())
+  last_updated_by        String?                  @map("last_updated_by")
+  last_updated_at        DateTime                 @updatedAt @map("last_updated_at")
+  status                 String
+  is_deleted             Boolean                  @default(false)
+  deleted_at             DateTime?                @map("deleted_at")
+  deleted_by             String?                  @map("deleted_by")
+  organization_id        String?
+  careers_page           String?
+  linkedin_url           String?
+  raw_body               Json?
+  research_analyst       String?                  @db.Uuid
+  recruiter_assignee_id  String?                  @db.Uuid
+  MessageCompanyRelation MessageCompanyRelation[]
+  status_rel             CompanyStatus            @relation(fields: [status], references: [value])
+  contacts               Contact[]
+  Lead                   Lead[]
+  positions              Position[]
 
   @@unique([id, is_deleted, name, status])
   @@unique([id, name])
@@ -1080,7 +1099,7 @@ model Interview {
 }
 
 model Timezone {
-  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String             @id @default(uuid()) @db.Uuid
   field_type         FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1101,7 +1120,7 @@ model Timezone {
 }
 
 model InterviewFeedback {
-  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  id                 String             @id @default(uuid()) @map("id") @db.Uuid
   type               FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1120,7 +1139,7 @@ model InterviewFeedback {
 }
 
 model InterviewMode {
-  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  id                 String             @id @default(uuid()) @map("id") @db.Uuid
   field_type         FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1232,7 +1251,7 @@ model CandidateSubmission {
 }
 
 model CandidateSubmissionStatus {
-  id                  String                @id @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  id                  String                @id @default(uuid()) @map("id") @db.Uuid
   field_display_name  String                @default("company_status")
   color               String?               @db.VarChar(32)
   color_hex           String                @db.Char(6)
@@ -1356,7 +1375,7 @@ model Candidate {
 }
 
 model CandidateSourceOptions {
-  id                 String      @id @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  id                 String      @id @default(uuid()) @map("id") @db.Uuid
   field_display_name String      @default("company_status")
   color              String?     @db.VarChar(32)
   color_hex          String      @db.Char(6)

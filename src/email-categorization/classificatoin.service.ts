@@ -2,122 +2,285 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as cheerio from 'cheerio';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated/client-primary';
 import { IMessage } from './categorization.service';
+import { randomUUID } from 'crypto';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
-interface CompanySearchResult {
+interface ICompanySearchResult {
   id: string;
-  client_name: string;
-  email_domain: string;
+  client: string | null;
+  email_domain: string | null;
+  website_domain: string | null;
   match_score: number;
 }
+
+interface IDetailedCompanySearchResult {
+  company: ICompanySearchResult;
+  associatedContacts: {
+    email: string;
+    name?: string;
+    type: 'sender' | 'recipient' | 'cc' | 'bcc';
+    matched_domain: string;
+  }[];
+}
+
+interface IEmailContact {
+  email: string;
+  name?: string;
+  type: 'sender' | 'recipient' | 'cc' | 'bcc';
+}
+
 
 @Injectable()
 export class CompanyClassificationService {
   private readonly logger = new Logger(CompanyClassificationService.name);
   private readonly MATCH_THRESHOLD = 0.1;
+  private errorCount = 0;
+  private readonly logFilePath = path.join(
+    process.cwd(),
+    'logs',
+    'company-classification-errors.log',
+  );
+  private readonly GENERIC_DOMAINS = [
+    'gmail.com',
+    'yahoo.com',
+    'hotmail.com',
+    'outlook.com',
+    'aol.com',
+    'icloud.com',
+    'protonmail.com',
+    'live.com',
+    'msn.com',
+    'me.com',
+    'yandex.com',
+    'linkedin.com',
+    'facebook.com',
+    'twitter.com',
+    'instagram.com',
+    'indeed.com',
+    'monster.com',
+    'glassdoor.com',
+    'careerbuilder.com',
+    'proficientnow.com',
+  ];
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    this.initializeLogDirectory();
+  }
+  private async initializeLogDirectory() {
+    try {
+      await fs.mkdir(path.join(process.cwd(), 'logs'), { recursive: true });
+    } catch (error) {
+      this.logger.error(`Failed to create logs directory: ${error.message}`);
+    }
+  }
 
-  public async processEmail(message: IMessage): Promise<CompanySearchResult[]> {
+  private async logError(messageId: string, error: any, context: any) {
+    this.errorCount++;
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+      timestamp,
+      messageId,
+      errorCount: this.errorCount,
+      errorMessage: error.message,
+      errorCode: error.code,
+      errorType: error.name,
+      context,
+      // stackTrace: error.stack
+    };
+
+    try {
+      const logMessage = `${JSON.stringify(logEntry, null, 2)}\n---\n`;
+      await fs.appendFile(this.logFilePath, logMessage);
+    } catch (err) {
+      this.logger.error(`Failed to write to error log: ${err.message}`);
+    }
+  }
+
+  public async processEmail(
+    message: IMessage,
+  ): Promise<IDetailedCompanySearchResult[]> {
     this.logger.log(
       `Processing email for company classification: ${message.id}`,
     );
 
     try {
-      // Extract searchable text from the message
-      const searchText = this.prepareSearchText(message);
+      const contacts = this.extractContacts(message);
+      const domains = this.extractBusinessDomains(message);
+      const companyMatches = await this.findCompanyMatches(domains);
 
-      // Find matching companies
-      const companyMatches = await this.findCompanyMatches(searchText);
+      const detailedResults = this.createDetailedResults(
+        companyMatches,
+        contacts,
+      );
 
-      // Create database relationships for matches
-      if (companyMatches.length > 0) {
-        await this.createCompanyRelations(message.id, companyMatches);
+      if (detailedResults.length > 0) {
+        await this.createCompanyRelations(message.id, companyMatches, contacts);
       }
 
-      return companyMatches;
+      return detailedResults;
     } catch (error) {
-      this.logger.error(
-        `Error processing email ${message.id}: ${error.message}`,
-      );
+      await this.logError(message.id, error, {
+        messageSubject: message.subject,
+        senderEmail: message.sender_email,
+        extractedDomains: this.extractBusinessDomains(message),
+      });
       throw error;
     }
   }
 
+  private extractBusinessDomains(message: IMessage): string[] {
+    const contacts = this.extractContacts(message);
+    return contacts
+      .map((contact) => this.extractDomain(contact.email))
+      .filter((domain) => domain && !this.GENERIC_DOMAINS.includes(domain))
+      .filter((domain, index, self) => self.indexOf(domain) === index); // Unique domains
+  }
+
   private async findCompanyMatches(
-    messageText: string,
-  ): Promise<CompanySearchResult[]> {
-    const searchQuery = Prisma.sql`
-            SELECT 
-                o.id,
-                o.client_name,
-                o.email_domain,
-                (
-                    ts_rank_cd(to_tsvector('english', client_name), query) * 0.4 +
-                    ts_rank_cd(to_tsvector('english', COALESCE(email_domain, '')), query) * 0.3 +
-                    ts_rank_cd(to_tsvector('english', COALESCE(website_domain, '')), query) * 0.3
-                ) as match_score
-            FROM organizations o, plainto_tsquery('english', ${messageText}) query
-            WHERE 
-                to_tsvector('english', client_name) @@ query OR
-                to_tsvector('english', COALESCE(email_domain, '')) @@ query OR
-                to_tsvector('english', COALESCE(website_domain, '')) @@ query
-            HAVING 
-                (
-                    ts_rank_cd(to_tsvector('english', client_name), query) * 0.4 +
-                    ts_rank_cd(to_tsvector('english', COALESCE(email_domain, '')), query) * 0.3 +
-                    ts_rank_cd(to_tsvector('english', COALESCE(website_domain, '')), query) * 0.3
-                ) > ${this.MATCH_THRESHOLD}
-            ORDER BY match_score DESC
-            LIMIT 10
-        `;
+    domains: string[],
+  ): Promise<ICompanySearchResult[]> {
+    if (domains.length === 0) return [];
 
     try {
-      const results =
-        await this.prisma.primary.$queryRaw<CompanySearchResult[]>(searchQuery);
+      const results = await this.prisma.readonly.organizations.findMany({
+        distinct: ['client'],
+        where: {
+          OR: [
+            {
+              website_domain: {
+                in: domains,
+                mode: 'insensitive',
+                not: 'proficientnow.com',
+              },
+            },
+            {
+              email_domain: {
+                in: domains,
+                mode: 'insensitive',
+                not: 'proficientnow.com',
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+          client: true,
+          email_domain: true,
+          website_domain: true,
+          website: true,
+          research_analyst: true,
+          status: true,
+        },
+      });
 
-      this.logger.debug(
-        'Company search results:',
-        results.map((company) => ({
-          name: company.client_name,
-          score: company.match_score,
-        })),
-      );
-
-      return results || [];
+      return results.map((result) => ({
+        id: result.id,
+        client: result.client,
+        email_domain: result.email_domain,
+        website_domain: result.website_domain,
+        match_score: 1.0,
+      }));
     } catch (error) {
       this.logger.error(`Error in company search: ${error.message}`);
       throw error;
     }
   }
 
+  private createDetailedResults(
+    companyMatches: ICompanySearchResult[],
+    contacts: IEmailContact[],
+  ): IDetailedCompanySearchResult[] {
+    return companyMatches.map((company) => ({
+      company,
+      associatedContacts: contacts
+        .filter((contact) => {
+          const contactDomain = this.extractDomain(contact.email);
+          return (
+            (company.email_domain &&
+              contactDomain === company.email_domain.toLowerCase()) ||
+            (company.website_domain &&
+              contactDomain === company.website_domain.toLowerCase())
+          );
+        })
+        .map((contact) => ({
+          ...contact,
+          matched_domain: this.extractDomain(contact.email),
+        })),
+    }));
+  }
+
+  private extractContacts(message: IMessage): IEmailContact[] {
+    const contacts: IEmailContact[] = [];
+
+    if (message.sender_email) {
+      contacts.push({
+        email: message.sender_email,
+        name: message.sender_name,
+        type: 'sender',
+      });
+    }
+
+    const addContactsFromField = (field: any, type: IEmailContact['type']) => {
+      const emails = this.parseJsonEmails(field);
+      emails?.forEach((email) => {
+        contacts.push({ email, type });
+      });
+    };
+
+    addContactsFromField(message.recipients, 'recipient');
+    addContactsFromField(message.cc_recipients, 'cc');
+    addContactsFromField(message.bcc_recipients, 'bcc');
+
+    return contacts;
+  }
+
+  private parseJsonEmails(jsonField: any): string[] | null {
+    if (!jsonField) return null;
+
+    const extractEmail = (item: any): string | null => {
+      if (typeof item === 'string') return item;
+      if (typeof item !== 'object' || !item) return null;
+
+      return item.emailAddress?.address || item.email || null;
+    };
+
+    if (!Array.isArray(jsonField)) {
+      const email = extractEmail(jsonField);
+      return email ? [email] : null;
+    }
+
+    return jsonField
+      .map(extractEmail)
+      .filter((email): email is string => email !== null);
+  }
+
+  private extractDomain(email: string): string {
+    return email.split('@')[1]?.toLowerCase() || '';
+  }
+
   private async createCompanyRelations(
     messageId: string,
-    matches: CompanySearchResult[],
-  ) {
+    matches: ICompanySearchResult[],
+    contacts: IEmailContact[],
+  ): Promise<void> {
     try {
       await this.prisma.primary.$transaction(async (tx) => {
-        // Delete existing relations
-        await tx.messageCompanyRelation.deleteMany({
-          where: { message_id: messageId },
-        });
+        const defaultStatus = await this.createDefaultCompanyStatus(tx);
+        const companies = await this.createOrUpdateCompanies(tx, matches);
 
-        // Create new relations
-        await tx.messageCompanyRelation.createMany({
-          data: matches.map((match) => ({
-            message_id: messageId,
-            company_id: match.id,
-            relevance_score: match.match_score,
-            match_reasons: {
-              text_match_score: match.match_score,
-              match_type: 'text_search',
-            },
-          })),
-        });
+        await this.createMessageCompanyRelations(
+          tx,
+          messageId,
+          companies,
+          matches,
+          contacts,
+        );
       });
     } catch (error) {
       this.logger.error(`Error creating company relations: ${error.message}`);
@@ -125,81 +288,120 @@ export class CompanyClassificationService {
     }
   }
 
-  private prepareSearchText(message: IMessage): string {
-    const plainBody = this.htmlToText(message.body);
-    const emailDomains = this.extractEmailDomains(message);
-
-    return [message.subject, plainBody, ...emailDomains]
-      .filter(Boolean)
-      .join(' ')
-      .slice(0, 1000); // Limit search text length for performance
+  private async createDefaultCompanyStatus(tx: any) {
+    return tx.companyStatus.upsert({
+      where: { value: 'ACTIVE' },
+      create: {
+        id: randomUUID(),
+        value: 'ACTIVE',
+        key: 'active',
+        field_display_name: 'company_status',
+        color_hex: '00FF00',
+        created_by: 'system',
+      },
+      update: {},
+    });
   }
 
-  private extractEmailDomains(message: IMessage): string[] {
-    const domains = new Set<string>();
+  private async createOrUpdateCompanies(
+    tx: any,
+    matches: ICompanySearchResult[],
+  ) {
+    return Promise.all(
+      matches.map(async (match) => {
+        const readonlyCompany = await this.fetchReadonlyCompany(match.id);
 
-    // Add sender domain
-    domains.add(this.extractDomain(message.sender_email));
-
-    // Add recipient domains
-    const addDomains = (emailList: any) => {
-      const emails = this.parseJsonEmails(emailList);
-      emails?.forEach((email) => {
-        const domain = this.extractDomain(email);
-        if (domain) domains.add(domain);
-      });
-    };
-
-    addDomains(message.recipients);
-    addDomains(message.cc_recipients);
-    addDomains(message.bcc_recipients);
-
-    return Array.from(domains);
+        return tx.company.upsert({
+          where: {
+            domain: match.website_domain || match.email_domain,
+          },
+          create: {
+            name: readonlyCompany?.client || match.client || 'Unknown Company',
+            website:
+              readonlyCompany?.website ||
+              `https://${match.website_domain || match.email_domain}`,
+            domain: match.website_domain || match.email_domain,
+            status: 'ACTIVE',
+            is_deleted: false,
+            created_by: 'system',
+            organization_id: readonlyCompany?.id || match.id,
+            raw_body: readonlyCompany
+              ? (readonlyCompany as unknown as Prisma.JsonValue)
+              : null,
+          },
+          update: {},
+        });
+      }),
+    );
   }
 
-  private extractDomain(email: string): string {
-    return email.split('@')[1]?.toLowerCase() || '';
+  private async fetchReadonlyCompany(id: string) {
+    return this.prisma.readonly.organizations.findFirst({
+      where: { id },
+      select: {
+        id: true,
+        client: true,
+        website: true,
+        email_domain: true,
+        website_domain: true,
+        research_analyst: true,
+        poc_email: true,
+        poc_name: true,
+        created: true,
+        created_by: true,
+      },
+    });
   }
 
-  private parseJsonEmails(jsonField: any): string[] | null {
-    if (!jsonField) return null;
+  private async createMessageCompanyRelations(
+    tx: any,
+    messageId: string,
+    companies: any[],
+    matches: ICompanySearchResult[],
+    contacts: IEmailContact[],
+  ) {
+    // try{
 
-    if (
-      typeof jsonField === 'object' &&
-      !Array.isArray(jsonField) &&
-      jsonField.email
-    ) {
-      return [jsonField.email];
-    }
+    await Promise.all(
+      companies.map(async (company, index) => {
+        // First check if relation exists
+        const existingRelation = await tx.messageCompanyRelation.findFirst({
+          where: {
+            message_id: messageId,
+            company_id: company.id,
+          },
+        });
 
-    if (Array.isArray(jsonField)) {
-      return jsonField
-        .map((item) => {
-          if (typeof item === 'object' && item !== null && 'email' in item) {
-            return (item as { email: string }).email;
-          }
-          if (typeof item === 'string') {
-            return item;
-          }
-          return null;
-        })
-        .filter((email): email is string => email !== null);
-    }
+        const relationData = {
+          message_id: messageId,
+          company_id: company.id,
+          relevance_score: matches[index].match_score,
+          match_reasons: {
+            matched_contacts: contacts
+              .filter(
+                (c) => !this.GENERIC_DOMAINS.some((d) => c.email.includes(d)),
+              )
+              .map((c) => c.email),
+            source_organization_id: matches[index].id,
+          },
+        };
 
-    return null;
-  }
-
-  private htmlToText(html: string): string {
-    if (!html) return '';
-    const $ = cheerio.load(html);
-
-    $('script, style').remove();
-    $('div, p, br').after('\n');
-    $('li').before('- ');
-
-    let text = $.text();
-    text = text.replace(/\s+/g, ' ').trim();
-
-    return text;
+        if (existingRelation) {
+          // Update existing relation
+          await tx.messageCompanyRelation.update({
+            where: { id: existingRelation.id },
+            data: {
+              relevance_score: relationData.relevance_score,
+              match_reasons: relationData.match_reasons,
+            },
+          });
+        } else {
+          // Create new relation
+          await tx.messageCompanyRelation.create({
+            data: relationData,
+          });
+        }
+      }),
+    );
   }
 }

@@ -472,8 +472,24 @@ Table messages {
   isArchived Boolean [not null]
   isRead Boolean [not null]
   isStarred Boolean [not null]
+  MessageCompanyRelation MessageCompanyRelation [not null]
   source sources [not null]
   folders folder_messages [not null]
+}
+
+Table MessageCompanyRelation {
+  id String [pk]
+  message_id String [not null]
+  company_id String [not null]
+  relevance_score Float [not null]
+  match_reasons Json [not null]
+  created_at DateTime [default: `now()`, not null]
+  company companies [not null]
+  message messages [not null]
+
+  indexes {
+    (message_id, company_id) [unique]
+  }
 }
 
 Table attachments {
@@ -669,7 +685,7 @@ Table conversations {
   threads Json[] [not null]
   created_at DateTime [default: `now()`, not null]
   last_updated_at DateTime [not null]
-  conversation_topic ConversationTopic [not null]
+  conversation_topic String [not null]
 }
 
 Table email_action_history {
@@ -756,6 +772,7 @@ Table companies {
   raw_body Json
   research_analyst String
   recruiter_assignee_id String
+  MessageCompanyRelation MessageCompanyRelation [not null]
   status_rel company_status_multi_select [not null]
   contacts contacts [not null]
   Lead leads [not null]
@@ -1729,6 +1746,10 @@ Ref: group_policies.user_group_id > user_groups.id
 Ref: sources.type_id > MessageType.id
 
 Ref: messages.source_id > sources.id
+
+Ref: MessageCompanyRelation.company_id > companies.id
+
+Ref: MessageCompanyRelation.message_id > messages.id
 
 Ref: attachments.(document_id, document_url, content_hash, normalized_content, content, content_full) - documents.(id, url, content_hash, normalized_content, content, content_full)
 

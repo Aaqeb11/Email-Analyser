@@ -471,6 +471,15 @@ exports.Prisma.MessageScalarFieldEnum = {
   isStarred: 'isStarred'
 };
 
+exports.Prisma.MessageCompanyRelationScalarFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id',
+  relevance_score: 'relevance_score',
+  match_reasons: 'match_reasons',
+  created_at: 'created_at'
+};
+
 exports.Prisma.AttachmentScalarFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -1434,6 +1443,12 @@ exports.Prisma.MessageOrderByRelevanceFieldEnum = {
   source_id: 'source_id'
 };
 
+exports.Prisma.MessageCompanyRelationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id'
+};
+
 exports.Prisma.AttachmentOrderByRelevanceFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -1548,7 +1563,8 @@ exports.Prisma.ThreadContextItemsOrderByRelevanceFieldEnum = {
 
 exports.Prisma.ConversationOrderByRelevanceFieldEnum = {
   id: 'id',
-  domain: 'domain'
+  domain: 'domain',
+  conversation_topic: 'conversation_topic'
 };
 
 exports.Prisma.EmailActionHistoryOrderByRelevanceFieldEnum = {
@@ -2129,17 +2145,6 @@ exports.FolderType = exports.$Enums.FolderType = {
   OUTGOING_FOLDER: 'OUTGOING_FOLDER'
 };
 
-exports.ConversationTopic = exports.$Enums.ConversationTopic = {
-  INITIAL_CONTACT: 'INITIAL_CONTACT',
-  POSITION_DESCRIPTION: 'POSITION_DESCRIPTION',
-  JOB_DESCRIPTION: 'JOB_DESCRIPTION',
-  CANDIDATE_SUBMISSION: 'CANDIDATE_SUBMISSION',
-  CANDIDATE_REVIEW: 'CANDIDATE_REVIEW',
-  INTERVIEW: 'INTERVIEW',
-  CONTRACT: 'CONTRACT',
-  EMPLOYMENT: 'EMPLOYMENT'
-};
-
 exports.FrontendFieldTypes = exports.$Enums.FrontendFieldTypes = {
   DATE: 'DATE',
   DATE_TIME: 'DATE_TIME',
@@ -2228,6 +2233,7 @@ exports.Prisma.ModelName = {
   MessageType: 'MessageType',
   Source: 'Source',
   Message: 'Message',
+  MessageCompanyRelation: 'MessageCompanyRelation',
   Attachment: 'Attachment',
   Document: 'Document',
   Folder: 'Folder',

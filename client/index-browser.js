@@ -1563,8 +1563,7 @@ exports.Prisma.ThreadContextItemsOrderByRelevanceFieldEnum = {
 
 exports.Prisma.ConversationOrderByRelevanceFieldEnum = {
   id: 'id',
-  domain: 'domain',
-  conversation_topic: 'conversation_topic'
+  domain: 'domain'
 };
 
 exports.Prisma.EmailActionHistoryOrderByRelevanceFieldEnum = {
@@ -2143,6 +2142,17 @@ exports.DocumentClassification = exports.$Enums.DocumentClassification = {
 exports.FolderType = exports.$Enums.FolderType = {
   INCOMING_FOLDER: 'INCOMING_FOLDER',
   OUTGOING_FOLDER: 'OUTGOING_FOLDER'
+};
+
+exports.ConversationTopic = exports.$Enums.ConversationTopic = {
+  INITIAL_CONTACT: 'INITIAL_CONTACT',
+  POSITION_DESCRIPTION: 'POSITION_DESCRIPTION',
+  JOB_DESCRIPTION: 'JOB_DESCRIPTION',
+  CANDIDATE_SUBMISSION: 'CANDIDATE_SUBMISSION',
+  CANDIDATE_REVIEW: 'CANDIDATE_REVIEW',
+  INTERVIEW: 'INTERVIEW',
+  CONTRACT: 'CONTRACT',
+  EMPLOYMENT: 'EMPLOYMENT'
 };
 
 exports.FrontendFieldTypes = exports.$Enums.FrontendFieldTypes = {

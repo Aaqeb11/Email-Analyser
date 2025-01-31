@@ -32,7 +32,7 @@
 //     async (input: { batchSize?: number } = {}) => {
 //       try {
 //         const batchSize = input.batchSize || 10;
-        
+
 //         // Enhanced fetch with proper filtering and embeddings check
 //         const emails = await prisma.email.findMany({
 //           where: {
@@ -70,7 +70,7 @@
 //         //     sentDateTime: 'desc'
 //         //   },
 //         });
-  
+
 //         console.log("Fetched emails:", {
 //           count: emails.length,
 //           sampleEmail: emails[0] ? {
@@ -80,7 +80,7 @@
 //             // attachments: emails[0].attachments
 //           } : null
 //         });
-  
+
 //         return {
 //           status: "success",
 //           message: `Found ${emails.length} unclassified emails`,
@@ -100,7 +100,7 @@
 //       description: "Fetches unclassified emails with embeddings from the database"
 //     }
 //   );
-  
+
 //   // Tool for single email processing
 //   export const processEmailTool = tool(
 //     async (input: { emailId: string }) => {
@@ -108,13 +108,13 @@
 //         const email = await prisma.email.findUnique({
 //           where: { id: input.emailId }
 //         });
-  
+
 //         if (!email) {
 //           throw new Error("Email not found");
 //         }
 
 //         console.log()
-  
+
 //         const emailContent = `
 //           Subject: ${email.subject}
 //           Body: ${email.body}
@@ -122,7 +122,7 @@
 //           To: ${JSON.stringify(email.receiver)}
 //           Sent Date: ${email.sentDateTime}
 //         `.trim();
-  
+
 //         return {
 //           status: "success",
 //           email: email,
@@ -152,22 +152,22 @@
 //         try {
 //           console.log(`Input to ${entityType} validation:`, JSON.stringify(input, null, 2));
 //           console.log("this is the input",input)
-          
+
 //           const entityCategory = await prisma.entity.upsert({
 //             where: { name: entityType },
 //             create: { name: entityType },
 //             update: {},
 //           });
-  
+
 //           const validatedInstances = [];
-  
+
 //           for (const classification of input.classifications) {
 //             if (classification.instances && Array.isArray(classification.instances)) {
 //               const highConfidenceInstances = classification.instances.filter(
 //                 instance => instance.confidence >= 0.95
 //               );
 
-//               console.log(`High confidence instances for ${entityType}:`, 
+//               console.log(`High confidence instances for ${entityType}:`,
 //                 JSON.stringify(highConfidenceInstances, null, 2));
 
 //               for (const instance of highConfidenceInstances) {
@@ -177,7 +177,7 @@
 //                     entityId: entityCategory.id,
 //                   },
 //                 });
-    
+
 //                 if (!entityInstance) {
 //                   entityInstance = await prisma.entityInstance.create({
 //                     data: {
@@ -191,7 +191,7 @@
 //                     },
 //                   });
 //                 }
-    
+
 //                 // Keep ALL original instance properties
 //                 validatedInstances.push({
 //                   ...instance,  // This preserves ALL original properties
@@ -233,7 +233,6 @@
 //       }
 //     );
 // };
-  
 
 // // Create specific validation tools
 // export const clientValidationTool = createEntityValidationTool(
@@ -286,7 +285,7 @@
 //     })
 // }
 
-export const businessLogic=`You are an email analyzer for ProficientNow, a specialized staffing company focused on technical recruitment. Your task is to analyze emails and classify them according to ProficientNow's business workflow and sales pipeline stages. 
+export const businessLogic = `You are an email analyzer for ProficientNow, a specialized staffing company focused on technical recruitment. Your task is to analyze emails and classify them according to ProficientNow's business workflow and sales pipeline stages. 
 
 Pipeline Stage Classification:
 - Prospect Stage: Initial research and information gathering
@@ -363,7 +362,7 @@ Business Intelligence:
 
 // Classify the email into these categories and identify specific instances:
 // {categories}
-// `
+// `;
 
 // export const VALIDATOR_PROMPT = `You are a high-precision email content validator for ProficientNow, a technical staffing company. Your role is to validate and refine the AI's initial classifications of email content. You will receive a JSON object with various classifications and must verify each one with high precision. If the email is a repeating one, then no need to validate,use the earlier validation if any.
 

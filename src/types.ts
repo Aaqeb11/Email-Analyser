@@ -135,3 +135,63 @@ export default parseValidatedClassifications;
 // export type EmailCreateInputWithVector = Prisma.EmailCreateInput & {
 //   embedding?: vector;
 // };
+
+import { JsonArray, JsonObject } from '@prisma/client/runtime/library';
+export declare type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
+  | JsonArray;
+
+export interface IMessage {
+  // [x: string]: any;
+  id: string;
+  ms_message_id?: string;
+  subject?: string;
+  sender_name?: string;
+  sender_email: string;
+  received_date_time?: Date;
+  // sent_date_time?: Date;
+  body: string;
+  // body_preview?: string;
+  recipients?: JsonValue;
+  cc_recipients?: JsonValue;
+  bcc_recipients?: JsonValue;
+  // reply_to?: Prisma.JsonValue ;
+  // has_attachments: boolean;
+  summary?: JsonValue;
+  meta_data?: JsonValue;
+  source_id?: string;
+  isRead?: boolean;
+  isStarred?: boolean;
+  isArchived?: boolean;
+  created_at?: Date;
+  last_updated_at?: Date;
+}
+
+export enum Department {
+  RESEARCH = 'RESEARCH',
+  RECRUITMENT = 'RECRUITMENT',
+  FINANCE = 'FINANCE',
+  OTHER = 'OTHER',
+}
+export interface IEmailParticipants {
+  sender_email: string;
+  recipients?: string[] | null;
+  cc_recipients?: string[] | null;
+  bcc_recipients?: string[] | null;
+}
+export interface IEmailRequest {
+  id: string;
+  ms_message_id?: string;
+  subject?: string;
+  sender_name?: string;
+  sender_email: string;
+  body: string;
+  recipients?: any;
+  cc_recipients?: any;
+  bcc_recipients?: any;
+  meta_data?: any;
+}

@@ -471,15 +471,6 @@ exports.Prisma.MessageScalarFieldEnum = {
   isStarred: 'isStarred'
 };
 
-exports.Prisma.MessageCompanyRelationScalarFieldEnum = {
-  id: 'id',
-  message_id: 'message_id',
-  company_id: 'company_id',
-  relevance_score: 'relevance_score',
-  match_reasons: 'match_reasons',
-  created_at: 'created_at'
-};
-
 exports.Prisma.AttachmentScalarFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -712,17 +703,6 @@ exports.Prisma.CompanyScalarFieldEnum = {
   raw_body: 'raw_body',
   research_analyst: 'research_analyst',
   recruiter_assignee_id: 'recruiter_assignee_id'
-};
-
-exports.Prisma.CompanyStatusScalarFieldEnum = {
-  id: 'id',
-  field_display_name: 'field_display_name',
-  color: 'color',
-  color_hex: 'color_hex',
-  key: 'key',
-  value: 'value',
-  created_by: 'created_by',
-  created_at: 'created_at'
 };
 
 exports.Prisma.ContactScalarFieldEnum = {
@@ -1180,6 +1160,26 @@ exports.Prisma.ReminderScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.MessageCompanyRelationScalarFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id',
+  relevance_score: 'relevance_score',
+  match_reasons: 'match_reasons',
+  created_at: 'created_at'
+};
+
+exports.Prisma.Company_status_multi_selectScalarFieldEnum = {
+  id: 'id',
+  field_display_name: 'field_display_name',
+  color: 'color',
+  color_hex: 'color_hex',
+  key: 'key',
+  value: 'value',
+  created_by: 'created_by',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1443,12 +1443,6 @@ exports.Prisma.MessageOrderByRelevanceFieldEnum = {
   source_id: 'source_id'
 };
 
-exports.Prisma.MessageCompanyRelationOrderByRelevanceFieldEnum = {
-  id: 'id',
-  message_id: 'message_id',
-  company_id: 'company_id'
-};
-
 exports.Prisma.AttachmentOrderByRelevanceFieldEnum = {
   id: 'id',
   receiver_emails: 'receiver_emails',
@@ -1626,16 +1620,6 @@ exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
   linkedin_url: 'linkedin_url',
   research_analyst: 'research_analyst',
   recruiter_assignee_id: 'recruiter_assignee_id'
-};
-
-exports.Prisma.CompanyStatusOrderByRelevanceFieldEnum = {
-  id: 'id',
-  field_display_name: 'field_display_name',
-  color: 'color',
-  color_hex: 'color_hex',
-  key: 'key',
-  value: 'value',
-  created_by: 'created_by'
 };
 
 exports.Prisma.ContactOrderByRelevanceFieldEnum = {
@@ -1980,6 +1964,22 @@ exports.Prisma.ReminderOrderByRelevanceFieldEnum = {
   task_id: 'task_id',
   message: 'message'
 };
+
+exports.Prisma.MessageCompanyRelationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  message_id: 'message_id',
+  company_id: 'company_id'
+};
+
+exports.Prisma.company_status_multi_selectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  field_display_name: 'field_display_name',
+  color: 'color',
+  color_hex: 'color_hex',
+  key: 'key',
+  value: 'value',
+  created_by: 'created_by'
+};
 exports.ConfigStatus = exports.$Enums.ConfigStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
@@ -2233,7 +2233,6 @@ exports.Prisma.ModelName = {
   MessageType: 'MessageType',
   Source: 'Source',
   Message: 'Message',
-  MessageCompanyRelation: 'MessageCompanyRelation',
   Attachment: 'Attachment',
   Document: 'Document',
   Folder: 'Folder',
@@ -2252,7 +2251,6 @@ exports.Prisma.ModelName = {
   Deal: 'Deal',
   Agreement: 'Agreement',
   Company: 'Company',
-  CompanyStatus: 'CompanyStatus',
   Contact: 'Contact',
   POC: 'POC',
   Position: 'Position',
@@ -2281,7 +2279,9 @@ exports.Prisma.ModelName = {
   Comment: 'Comment',
   CommentMention: 'CommentMention',
   Task: 'Task',
-  Reminder: 'Reminder'
+  Reminder: 'Reminder',
+  MessageCompanyRelation: 'MessageCompanyRelation',
+  company_status_multi_select: 'company_status_multi_select'
 };
 
 /**

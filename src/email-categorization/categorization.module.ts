@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma.service';
 import { CompanyClassificationService } from './classificatoin.service';
 import { ConversationService } from './conversation.service';
 import { BullModule } from '@nestjs/bull';
-import { EmailProcessor } from './email.processor';
+// import { EmailProcessor } from './email.processor';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { EmailProcessor } from './email.processor';
     PrismaService,
     CompanyClassificationService,
     ConversationService,
-    EmailProcessor,
+    // EmailProcessor,
   ],
   controllers: [CategorizationController],
 })

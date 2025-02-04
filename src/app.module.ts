@@ -1,17 +1,42 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-// import { EmailService } from './dataUpload.service';
 import { PrismaService } from 'src/prisma.service';
-import { ConfigModule } from '@nestjs/config';// import { EmailClassificationService } from './emailClassification.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CategorizationModule } from './email-categorization/categorization.module';
+import { BullModule } from '@nestjs/bull';
+import { EmbeddingModule } from './email-embedding/embedding.module';
 
 @Module({
-  imports: [ 
-    ConfigModule.forRoot({
-    isGlobal: true,
-  }),CategorizationModule] ,
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const host = configService.get<string>('REDIS_HOST');
+        if (!host) {
+          throw new Error('REDIS_HOST is not defined');
+        }
+
+        const port = configService.get<number>('REDIS_PORT');
+        if (!port) {
+          throw new Error('REDIS_PORT is not defined');
+        }
+
+        return {
+          redis: {
+            host,
+            port,
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+    CategorizationModule,
+    EmbeddingModule,
+  ],
   controllers: [AppController],
-  providers: [AppService,  PrismaService],
+  providers: [AppService, PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}

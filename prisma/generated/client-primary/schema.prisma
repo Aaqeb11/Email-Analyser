@@ -1,4 +1,4 @@
-generator pclient {
+generator client {
   provider        = "prisma-client-js"
   output          = "./generated/client-primary"
   previewFeatures = ["fullTextSearchPostgres", "metrics", "postgresqlExtensions", "prismaSchemaFolder"]
@@ -11,7 +11,7 @@ generator dbml {
 datasource db {
   provider   = "postgresql"
   url        = env("PRIMARY_DATABASE_URL")
-  extensions = [uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
+  extensions = [pg_net(schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), uuid_ossp(map: "uuid-ossp", schema: "019403ee-2961-7f8e-9682-c2c5dede384b"), vector(schema: "019403ee-2961-7f8e-9682-c2c5dede384b")]
 }
 
 model TenantConfiguration {
@@ -355,15 +355,15 @@ model UserAddress {
 }
 
 model UserDevice {
-  id                                                                                       String              @id @default(uuid()) @db.Uuid
-  unique_device_signature                                                                  String              @unique
-  user_id                                                                                  String              @unique @db.Uuid
-  last_accessed_at                                                                         DateTime
-  last_accessed_from_location_id                                                           String              @unique @db.Uuid
-  device_metadata                                                                          Json[]
-  user_device_locations_user_device_locations_device_id_user_idTouser_devices              UserDeviceLocation? @relation("user_device_locations_device_id_user_idTouser_devices")
-  user_device_locations_user_devices_last_accessed_from_location_idTouser_device_locations UserDeviceLocation  @relation("user_devices_last_accessed_from_location_idTouser_device_locations", fields: [last_accessed_from_location_id], references: [id])
-  user                                                                                     User                @relation(fields: [user_id], references: [id])
+  id                             String              @id @default(uuid()) @db.Uuid
+  unique_device_signature        String              @unique
+  user_id                        String              @unique @db.Uuid
+  last_accessed_at               DateTime
+  last_accessed_from_location_id String              @unique @db.Uuid
+  device_metadata                Json[]
+  location_history               UserDeviceLocation?
+  last_accessed_from             UserDeviceLocation  @relation("last_accessed_from", fields: [last_accessed_from_location_id], references: [id])
+  user                           User                @relation(fields: [user_id], references: [id])
 
   @@unique([id, unique_device_signature, user_id])
   @@unique([id, user_id])
@@ -373,13 +373,13 @@ model UserDevice {
 }
 
 model UserDeviceLocation {
-  id                                                                              String      @id @default(uuid()) @db.Uuid
-  lat                                                                             Float
-  long                                                                            Float
-  user_id                                                                         String      @unique @db.Uuid
-  device_id                                                                       String      @unique @db.Uuid
-  user_devices_user_device_locations_device_id_user_idTouser_devices              UserDevice  @relation("user_device_locations_device_id_user_idTouser_devices", fields: [device_id, user_id], references: [id, user_id])
-  user_devices_user_devices_last_accessed_from_location_idTouser_device_locations UserDevice? @relation("user_devices_last_accessed_from_location_idTouser_device_locations")
+  id           String      @id @default(uuid()) @db.Uuid
+  lat          Float
+  long         Float
+  user_id      String      @unique @db.Uuid
+  device_id    String      @unique @db.Uuid
+  device       UserDevice  @relation(fields: [device_id, user_id], references: [id, user_id])
+  last_used_by UserDevice? @relation("last_accessed_from")
 
   @@unique([device_id, user_id])
   @@index([id, device_id])
@@ -560,29 +560,14 @@ model Message {
   receiver_embedding     Unsupported("vector")?
   MessageCompanyRelation MessageCompanyRelation[]
   source                 Source                   @relation(fields: [source_id], references: [id])
-  folders                FolderMessage[]          @relation("FolderMessageToMessage")
+  folder_messages        FolderMessage[]          @relation("FolderMessageToMessage")
 
   @@index([ms_message_id])
-  @@index([received_date_time(sort: Desc)])
-  @@index([sent_date_time(sort: Desc)])
   @@index([sender_email])
   @@index([source_id])
+  @@index([received_date_time(sort: Desc)])
+  @@index([sent_date_time(sort: Desc)])
   @@map("messages")
-}
-
-model MessageCompanyRelation {
-  id              String   @id @default(uuid()) @db.Uuid
-  message_id      String   @db.Uuid
-  company_id      String   @db.Uuid
-  relevance_score Float
-  match_reasons   Json
-  created_at      DateTime @default(now())
-  company         Company  @relation(fields: [company_id], references: [id])
-  message         Message  @relation(fields: [message_id], references: [id])
-
-  @@unique([message_id, company_id])
-  @@index([message_id])
-  @@index([company_id])
 }
 
 model Attachment {
@@ -778,7 +763,7 @@ model ThreadContext {
   context         String
   created_at      DateTime               @default(now())
   last_updated_at DateTime               @updatedAt
-  Thread          Thread?
+  thread          Thread?
   context_history ThreadContextHistory[]
 
   @@unique([id, context_hash])
@@ -906,29 +891,29 @@ model Agreement {
 }
 
 model Company {
-  id                     String                   @id @default(uuid()) @db.Uuid
+  id                     String                      @id @default(uuid()) @db.Uuid
   name                   String
   website                String
-  domain                 String                   @unique
+  domain                 String                      @unique
   size                   String?
   revenue                String?
   industry               String?
-  created_by             String?                  @map("created_by")
-  created_at             DateTime                 @default(now())
-  last_updated_by        String?                  @map("last_updated_by")
-  last_updated_at        DateTime                 @updatedAt @map("last_updated_at")
+  created_by             String?                     @map("created_by")
+  created_at             DateTime                    @default(now())
+  last_updated_by        String?                     @map("last_updated_by")
+  last_updated_at        DateTime                    @updatedAt @map("last_updated_at")
   status                 String
-  is_deleted             Boolean                  @default(false)
-  deleted_at             DateTime?                @map("deleted_at")
-  deleted_by             String?                  @map("deleted_by")
+  is_deleted             Boolean                     @default(false)
+  deleted_at             DateTime?                   @map("deleted_at")
+  deleted_by             String?                     @map("deleted_by")
   organization_id        String?
   careers_page           String?
   linkedin_url           String?
   raw_body               Json?
-  research_analyst       String?                  @db.Uuid
-  recruiter_assignee_id  String?                  @db.Uuid
+  research_analyst       String?                     @db.Uuid
+  recruiter_assignee_id  String?                     @db.Uuid
   MessageCompanyRelation MessageCompanyRelation[]
-  status_rel             CompanyStatus            @relation(fields: [status], references: [value])
+  status_rel             company_status_multi_select @relation(fields: [status], references: [value])
   contacts               Contact[]
   Lead                   Lead[]
   positions              Position[]
@@ -936,23 +921,6 @@ model Company {
   @@unique([id, is_deleted, name, status])
   @@unique([id, name])
   @@map("companies")
-}
-
-model CompanyStatus {
-  id                 String    @id @default(uuid()) @map("id") @db.Uuid
-  field_display_name String    @default("company_status")
-  color              String?   @db.VarChar(32)
-  color_hex          String    @db.Char(6)
-  key                String    @unique
-  value              String    @unique
-  created_by         String    @default("system") @map("created_by")
-  created_at         DateTime  @default(now())
-  Company            Company[]
-
-  @@index([field_display_name])
-  @@index([value])
-  @@index([color])
-  @@map("company_status_multi_select")
 }
 
 model Contact {
@@ -1099,7 +1067,7 @@ model Interview {
 }
 
 model Timezone {
-  id                 String             @id @default(uuid()) @db.Uuid
+  id                 String             @id @db.Uuid
   field_type         FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1120,7 +1088,7 @@ model Timezone {
 }
 
 model InterviewFeedback {
-  id                 String             @id @default(uuid()) @map("id") @db.Uuid
+  id                 String             @id @map("id") @db.Uuid
   type               FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1139,7 +1107,7 @@ model InterviewFeedback {
 }
 
 model InterviewMode {
-  id                 String             @id @default(uuid()) @map("id") @db.Uuid
+  id                 String             @id @map("id") @db.Uuid
   field_type         FrontendFieldTypes @default(SINGLE_SELECT)
   field_display_name String             @default("company_status")
   icon               String?
@@ -1251,7 +1219,7 @@ model CandidateSubmission {
 }
 
 model CandidateSubmissionStatus {
-  id                  String                @id @default(uuid()) @map("id") @db.Uuid
+  id                  String                @id @map("id") @db.Uuid
   field_display_name  String                @default("company_status")
   color               String?               @db.VarChar(32)
   color_hex           String                @db.Char(6)
@@ -1375,7 +1343,7 @@ model Candidate {
 }
 
 model CandidateSourceOptions {
-  id                 String      @id @default(uuid()) @map("id") @db.Uuid
+  id                 String      @id @map("id") @db.Uuid
   field_display_name String      @default("company_status")
   color              String?     @db.VarChar(32)
   color_hex          String      @db.Char(6)
@@ -1608,6 +1576,37 @@ model Reminder {
   @@index([task_id])
   @@index([remind_at, is_sent])
   @@map("reminders")
+}
+
+model MessageCompanyRelation {
+  id              String   @id @db.Uuid
+  message_id      String   @db.Uuid
+  company_id      String   @db.Uuid
+  relevance_score Float
+  match_reasons   Json
+  created_at      DateTime @default(now())
+  companies       Company  @relation(fields: [company_id], references: [id])
+  messages        Message  @relation(fields: [message_id], references: [id])
+
+  @@unique([message_id, company_id])
+  @@index([company_id])
+  @@index([message_id])
+}
+
+model company_status_multi_select {
+  id                 String    @id @db.Uuid
+  field_display_name String    @default("company_status")
+  color              String?   @db.VarChar(32)
+  color_hex          String    @db.Char(6)
+  key                String    @unique
+  value              String    @unique
+  created_by         String    @default("system")
+  created_at         DateTime  @default(now())
+  Company            Company[]
+
+  @@index([color])
+  @@index([field_display_name])
+  @@index([value])
 }
 
 enum AuthStrategy {

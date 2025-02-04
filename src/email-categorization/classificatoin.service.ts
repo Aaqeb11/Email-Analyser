@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import * as cheerio from 'cheerio';
 import { Prisma } from 'prisma/generated/client-primary';
 import { IMessage } from './categorization.service';
 import { randomUUID } from 'crypto';
@@ -31,7 +30,6 @@ interface IEmailContact {
   name?: string;
   type: 'sender' | 'recipient' | 'cc' | 'bcc';
 }
-
 
 @Injectable()
 export class CompanyClassificationService {
@@ -271,7 +269,7 @@ export class CompanyClassificationService {
   ): Promise<void> {
     try {
       await this.prisma.primary.$transaction(async (tx) => {
-        const defaultStatus = await this.createDefaultCompanyStatus(tx);
+        await this.createDefaultCompanyStatus(tx);
         const companies = await this.createOrUpdateCompanies(tx, matches);
 
         await this.createMessageCompanyRelations(

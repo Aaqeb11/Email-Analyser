@@ -306,8 +306,8 @@ Table user_devices {
   last_accessed_at DateTime [not null]
   last_accessed_from_location_id String [unique, not null]
   device_metadata Json[] [not null]
-  user_device_locations_user_device_locations_device_id_user_idTouser_devices user_device_locations
-  user_device_locations_user_devices_last_accessed_from_location_idTouser_device_locations user_device_locations [not null]
+  location_history user_device_locations
+  last_accessed_from user_device_locations [not null]
   user users [not null]
 
   indexes {
@@ -322,8 +322,8 @@ Table user_device_locations {
   long Float [not null]
   user_id String [unique, not null]
   device_id String [unique, not null]
-  user_devices_user_device_locations_device_id_user_idTouser_devices user_devices [not null]
-  user_devices_user_devices_last_accessed_from_location_idTouser_device_locations user_devices
+  device user_devices [not null]
+  last_used_by user_devices
 
   indexes {
     (device_id, user_id) [unique]
@@ -474,22 +474,7 @@ Table messages {
   isStarred Boolean [not null]
   MessageCompanyRelation MessageCompanyRelation [not null]
   source sources [not null]
-  folders folder_messages [not null]
-}
-
-Table MessageCompanyRelation {
-  id String [pk]
-  message_id String [not null]
-  company_id String [not null]
-  relevance_score Float [not null]
-  match_reasons Json [not null]
-  created_at DateTime [default: `now()`, not null]
-  company companies [not null]
-  message messages [not null]
-
-  indexes {
-    (message_id, company_id) [unique]
-  }
+  folder_messages folder_messages [not null]
 }
 
 Table attachments {
@@ -650,7 +635,7 @@ Table thread_context {
   context String [not null]
   created_at DateTime [default: `now()`, not null]
   last_updated_at DateTime [not null]
-  Thread Thread
+  thread Thread
   context_history thread_context_history [not null]
 
   indexes {
@@ -782,18 +767,6 @@ Table companies {
     (id, is_deleted, name, status) [unique]
     (id, name) [unique]
   }
-}
-
-Table company_status_multi_select {
-  id String [pk]
-  field_display_name String [not null, default: 'company_status']
-  color String
-  color_hex String [not null]
-  key String [unique, not null]
-  value String [unique, not null]
-  created_by String [not null, default: 'system']
-  created_at DateTime [default: `now()`, not null]
-  Company companies [not null]
 }
 
 Table contacts {
@@ -1362,13 +1335,40 @@ Table reminders {
   task tasks [not null]
 }
 
+Table MessageCompanyRelation {
+  id String [pk]
+  message_id String [not null]
+  company_id String [not null]
+  relevance_score Float [not null]
+  match_reasons Json [not null]
+  created_at DateTime [default: `now()`, not null]
+  companies companies [not null]
+  messages messages [not null]
+
+  indexes {
+    (message_id, company_id) [unique]
+  }
+}
+
+Table company_status_multi_select {
+  id String [pk]
+  field_display_name String [not null, default: 'company_status']
+  color String
+  color_hex String [not null]
+  key String [unique, not null]
+  value String [unique, not null]
+  created_by String [not null, default: 'system']
+  created_at DateTime [default: `now()`, not null]
+  Company companies [not null]
+}
+
 Table DocumentSharedWithUsers {
   shared_documentsId String [ref: > documents.id]
   shared_withId String [ref: > users.id]
 }
 
 Table FolderMessageToMessage {
-  foldersId String [ref: > folder_messages.id]
+  folder_messagesId String [ref: > folder_messages.id]
   messagesId String [ref: > messages.id]
 }
 
@@ -1747,10 +1747,6 @@ Ref: sources.type_id > MessageType.id
 
 Ref: messages.source_id > sources.id
 
-Ref: MessageCompanyRelation.company_id > companies.id
-
-Ref: MessageCompanyRelation.message_id > messages.id
-
 Ref: attachments.(document_id, document_url, content_hash, normalized_content, content, content_full) - documents.(id, url, content_hash, normalized_content, content, content_full)
 
 Ref: documents.(uploaded_by_id, uploaded_by_email, uploaded_by_first_name, uploaded_by_last_name) > users.(id, email, first_name, last_name)
@@ -1830,3 +1826,7 @@ Ref: comment_mentions.tagged_user_id > users.id
 Ref: tasks.parent_id - tasks.id
 
 Ref: reminders.task_id > tasks.id
+
+Ref: MessageCompanyRelation.company_id > companies.id
+
+Ref: MessageCompanyRelation.message_id > messages.id
